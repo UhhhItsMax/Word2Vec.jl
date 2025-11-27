@@ -1,5 +1,12 @@
 module Word2Vec
 
-# Write your package code here.
+"""
+`helloworld` is a constant string containing the words "Hello World".
+
+It is exported as a demonstration of docstrings in Julia.
+"""
+helloworld = "Hello World"
+
+export helloworld
 
 end
