@@ -5,7 +5,7 @@ DocMeta.setdocmeta!(Word2Vec, :DocTestSetup, :(using Word2Vec); recursive=true)
 
 makedocs(;
     modules=[Word2Vec],
-    authors="Maximilian Willem Hans <m.hans@tu-berlin.de>, Jan-Erik Hein <jan-erik.hein@campus.tu-berlin.de>, Mika Paul Merten <merten@campus.tu-berlin.de>, Paul Mathias Nelde <paul.nelde@fu-berlin.de>",
+    authors="Maximilian Hans hans.maximilian@icloud.com",
     sitename="Word2Vec.jl",
     format=Documenter.HTML(;
         canonical="https://UhhhItsMax.github.io/Word2Vec.jl",
@@ -14,7 +14,6 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
-        "Getting Started" => "getting_started.md",
     ],
 )
 

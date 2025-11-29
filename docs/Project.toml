@@ -1,3 +1,3 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-Word2Vec = "7f7cdc0c-73b6-460c-91fd-cc3c08c07696"
+Word2Vec = "646652a7-79fc-4b5e-901d-cd688489453a"
