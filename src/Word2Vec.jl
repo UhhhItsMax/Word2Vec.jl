@@ -9,8 +9,7 @@ export Word2VecModel,
 
 include("models/Word2VecModel.jl")
 
-include("loaders/text_loader.jl")
-include("loaders/binary_loader.jl")
+include("loaders/load_word2vec.jl")
 
 include("training/skipgram.jl")
 include("training/cbow.jl")
