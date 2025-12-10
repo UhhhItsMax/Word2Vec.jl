@@ -1,8 +1,7 @@
 module Word2Vec
 
 export Word2VecModel,
-       load_word2vec_text,
-       load_word2vec_binary,
+       load_word2vec,
        get_embedding,
        train_skipgram,
        train_cbow,
