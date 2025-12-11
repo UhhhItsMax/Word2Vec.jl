@@ -60,62 +60,57 @@ end
 """
     detect_embedding_format(path::String) :: Symbol
 
-Detects the format of a Word2Vec embedding file.
+Heuristically detects whether a Word2Vec embedding file is in text or binary format.
 
 # Arguments
 - `path::String`: Path to the embedding file.
 
 # Returns
 - `:text` if the file appears to be in text format (`word float float ...`).
-- `:binary` if the file appears to be in Gensim binary format.
+- `:binary` if the file appears to be in binary Word2Vec format.
 
 # Notes
-- Prioritizes `.bin` extension -> `:binary`.
-- Checks first 8 bytes for Int32 header (rare pure-binary case).
-- Falls back to text detection on first few lines.
-- Defaults to `:text` if ambiguous (safer for small files).
+- The function first checks the file extension: files ending in `.bin` are assumed
+  to be binary.
+- If the extension does not indicate the format, the function inspects only the
+  first few non-empty lines of the file.
+- A line is classified as text if it has a non-numeric first token and the
+  following tokens resemble floating-point numbers.
+- Only a small prefix of the file is scanned to avoid loading large files into memory.
 """
 function detect_embedding_format(path::String)::Symbol
-    ext = splitext(basename(path))[2]
-    ext == ".bin" && return :binary  # Simple extension check first
-    
     open(path, "r") do io
-        # Check first 8 bytes for binary header (two Int32)
-        if filesize(path) >= 8
-            seekstart(io)
-            vocab_size = read(io, Int32)
-            dim = read(io, Int32)
-            # Valid header if reasonable sizes
-            if vocab_size > 0 && dim > 0 && dim < 1000
+        for (i, line) in enumerate(Iterators.take(eachline(io), 200))
+            # Check for invalid UTF-8 (binary)
+            try
+                line = String(line)
+            catch
+                println("ALARM")
                 return :binary
             end
-        end
-        
-        # Fallback to text detection (only read first few lines)
-        seekstart(io)
-        lines_read = 0
-        for line in eachline(io)
-            lines_read += 1
             line = strip(line)
             isempty(line) && continue
-            
+
             tokens = split(line)
-            if length(tokens) == 2 && all(t -> tryparse(Int, t) !== nothing, tokens)
-                continue  # header line
+            length(tokens) < 2 && continue
+
+            word, vec = tokens[1], tokens[2:end]
+
+            # Debug prints
+            println("Line $i Word: ", word)
+            println(tryparse(Float64, word))
+            println(tryparse(Float64, word) === nothing)
+            println("Vector tokens: ", vec)
+
+            # First token is not a number, rest are floats
+            if tryparse(Float64, word) === nothing
+                return :text
             end
-            
-            if length(tokens) >= 2
-                word, vec_tokens = tokens[1], tokens[2:end]
-                if tryparse(Float64, word) === nothing &&
-                   all(t -> tryparse(Float64, t) !== nothing, vec_tokens[1:min(5,end)])
-                    return :text
-                end
-            end
-            
-            lines_read > 5 && break  # Don't read entire file
         end
     end
-    return :text
+
+    # If all first lines are valid UTF-8 but no word+float line detected, assume binary
+    return :binary
 end
 
 """
@@ -175,9 +170,18 @@ Loads Word2Vec embeddings from a Gensim binary-format file.
 function load_binary_embeddings(path::String)::Dict{String, Vector{Float64}}
     embeddings = Dict{String, Vector{Float64}}()
     open(path, "r") do io
-        # Handle gensim's text header + binary vectors
-        header = readline(io)  # "12 100"
-        vocab_size, dim = parse.(Int, split(strip(header)))
+        # Read and validate header: "vocab_size dim\n"
+        header = readline(io)
+        tokens = split(header)
+        if length(tokens) != 2
+            error("Invalid binary Word2Vec file: header must have 2 tokens (vocab_size dim)")
+        end
+
+        vocab_size = tryparse(Int, tokens[1])
+        dim = tryparse(Int, tokens[2])
+        if vocab_size === nothing || dim === nothing
+            error("Invalid binary Word2Vec header: tokens must be integers")
+        end
         
         for _ in 1:vocab_size
             # Read word (space-terminated)
