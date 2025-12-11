@@ -78,39 +78,37 @@ Heuristically detects whether a Word2Vec embedding file is in text or binary for
   following tokens resemble floating-point numbers.
 - Only a small prefix of the file is scanned to avoid loading large files into memory.
 """
-function detect_embedding_format(path::String)::Symbol
+function detect_embedding_format(path::AbstractString)::Symbol
+    fmt::Symbol = :binary  # default assumption
+
     open(path, "r") do io
         for (i, line) in enumerate(Iterators.take(eachline(io), 200))
-            # Check for invalid UTF-8 (binary)
-            try
-                line = String(line)
-            catch
-                println("ALARM")
-                return :binary
-            end
-            line = strip(line)
-            isempty(line) && continue
+            s = strip(line)
+            isempty(s) && continue
 
-            tokens = split(line)
+            tokens = split(s)
             length(tokens) < 2 && continue
 
-            word, vec = tokens[1], tokens[2:end]
+            word = tokens[1]
+            first_vec = tokens[2]
 
-            # Debug prints
-            println("Line $i Word: ", word)
-            println(tryparse(Float64, word))
-            println(tryparse(Float64, word) === nothing)
-            println("Vector tokens: ", vec)
+            wnum = tryparse(Float64, word)
+            vnum = tryparse(Float64, first_vec)
 
-            # First token is not a number, rest are floats
-            if tryparse(Float64, word) === nothing
-                return :text
+            # Case 1: numeric header like "3 5" → both numeric → skip
+            if wnum !== nothing && vnum !== nothing
+                continue
+            end
+
+            # Case 2: word + first float → TEXT
+            if wnum === nothing && vnum !== nothing
+                fmt = :text
+                break
             end
         end
     end
 
-    # If all first lines are valid UTF-8 but no word+float line detected, assume binary
-    return :binary
+    return fmt
 end
 
 """
