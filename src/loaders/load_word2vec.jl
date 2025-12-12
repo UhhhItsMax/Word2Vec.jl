@@ -6,9 +6,9 @@ with automatic format detection.
 
 # Features
 - Detects whether a file is in text or binary Word2Vec format.
-- Loads embeddings into dictionaries mapping words (`String`) to vectors
-  (`Vector{Float64}` for text, `Vector{Float32}` for binary).
+- Loads embeddings into dictionaries mapping words (`String`) to vectors.
 - Handles optional header lines in text files.
+- Supports Gensim's hybrid binary format (text header + binary vectors).
 - Provides a unified `load_word2vec` function.
 - Safe parsing with error handling for malformed files.
 
@@ -17,11 +17,12 @@ with automatic format detection.
 - Uses `DelimitedFiles` from the standard library for reading files
 
 # Example
-``julia
 using Word2VecLoader
 
-embeddings = load_word2vec("GoogleNews-vectors-negative300.bin")
+embeddings = load_word2vec("word2vec.bin") # or .txt
 vec = embeddings["king"]
+
+text
 """
 
 using DelimitedFiles
@@ -29,7 +30,7 @@ using DelimitedFiles
 export load_word2vec
 
 """
-    load_word2vec(path::String) :: Union{Dict{String, Vector{Float32}}, Dict{String, Vector{Float64}}}
+    load_word2vec(path::String) :: Dict{String, Vector{Float64}}
 
 Loads Word2Vec embeddings from a file, automatically detecting whether the file
 is in text or binary format.
@@ -38,21 +39,17 @@ is in text or binary format.
 - `path::String`: Path to the Word2Vec embedding file.
 
 # Returns
-- `Dict{String, Vector{Float64}}` if the file is in text format.
-- `Dict{String, Vector{Float32}}` if the file is in binary format.
+- `Dict{String, Vector{Float64}}`: Dictionary mapping words to embedding vectors.
 
 # Notes
-- The function uses `detect_embedding_format` to determine the file format.
-- Text files are expected to have lines in the format `word float float ...`.
-  Numeric header lines are skipped automatically.
-- Binary files must follow the classic Word2Vec format with a header line
-  `vocab_size dim` and subsequent word-vector entries.
-- Errors may be thrown if the file does not match the expected format.
-- The entire embedding dictionary is loaded into memory, which may require
-  substantial RAM for large models.
+- Uses `detect_embedding_format` to determine file format.
+- Text files: `word float float ...` (skips numeric header lines).
+- Binary files: Gensim hybrid format (text header `"vocab_size dim"`, ASCII words, binary Float32 vectors).
+- Binary vectors are converted to `Float64` for consistency.
+- Large models require substantial RAM.
 """
 function load_word2vec(path::String)
-    fmt = detect_format(path)
+    fmt = detect_embedding_format(path)
     if fmt == :text
         return load_text_embeddings(path)
     else
@@ -63,7 +60,7 @@ end
 """
     detect_embedding_format(path::String) :: Symbol
 
-Detects the format of a Word2Vec embedding file.
+Heuristically detects whether a Word2Vec embedding file is in text or binary format.
 
 # Arguments
 - `path::String`: Path to the embedding file.
@@ -73,49 +70,37 @@ Detects the format of a Word2Vec embedding file.
 - `:binary` if the file appears to be in binary Word2Vec format.
 
 # Notes
-- The function reads the file line by line, skipping empty lines and optional
-  header lines.
-- It checks whether lines follow the pattern of a word followed by floating-point numbers.
-- If a line cannot be interpreted as UTF-8, the function assumes the file is binary.
-- If no text-like line is found, it defaults to `:binary`.
+- The function first checks the file extension: files ending in `.bin` are assumed
+  to be binary.
+- If the extension does not indicate the format, the function inspects only the
+  first few non-empty lines of the file.
+- A line is classified as text if it has a non-numeric first token and the
+  following tokens resemble floating-point numbers.
+- Only a small prefix of the file is scanned to avoid loading large files into memory.
 """
-function detect_embedding_format(path::String)::Symbol
-    open(path, "r") do io
-        while !eof(io)
-            line = strip(readline(io; keep=true))
+function detect_embedding_format(path::AbstractString)::Symbol
+    fmt::Symbol = :binary  # default assumption
 
+    open(path, "r") do io
+        for (i, line) in enumerate(Iterators.take(eachline(io), 10))
+            line = strip(line)
             isempty(line) && continue
 
             tokens = split(line)
+            length(tokens) < 2 && continue
 
-            # Case 1: header-like → skip it
-            if length(tokens) == 2 && all(t -> !isnothing(tryparse(Int, t)), tokens)
-                continue
-            end
+            word = tokens[1]
+            vec = tokens[2:end]
 
-            # Case 2: word + floats
-            if length(tokens) >= 2
-                word = tokens[1]
-                vec = tokens[2:end]
-
-                if tryparse(Float64, word) === nothing && all(t -> tryparse(Float64, t) !== nothing, vec)
-                    return :text
-                end
-            end
-
-            # If line contains non-UTF8 bytes, it's likely binary
-            try
-                String(line)
-            catch
-                return :binary
+            if tryparse(Float64, word) === nothing && all(t -> tryparse(Float64, t) !== nothing, vec)
+                fmt = :text
+                break
             end
         end
     end
 
-    # Fallback: assume binary if nothing matched
-    return :binary
+    return fmt
 end
-
 
 """
     load_text_embeddings(path::String) :: Dict{String, Vector{Float64}}
@@ -126,14 +111,12 @@ Loads Word2Vec embeddings from a text-format file.
 - `path::String`: Path to the text-format Word2Vec embedding file.
 
 # Returns
-- `Dict{String, Vector{Float64}}`: A dictionary mapping words (`String`) to their embedding vectors (`Vector{Float64}`).
+- `Dict{String, Vector{Float64}}`: Dictionary mapping words to embedding vectors.
 
 # Notes
-- Each line in the file should have the format `word float float ...`.
-- Lines where the first token is numeric (e.g., optional header) or where the vector
-  tokens cannot be parsed as floating-point numbers are skipped automatically.
-- This function reads the entire file into memory; very large embedding files may
-  require substantial RAM.
+- Each line: `word float float ...` (header lines auto-skipped).
+- Skips lines where first token is numeric or vectors can't be parsed.
+- Reads entire file into memory.
 """
 function load_text_embeddings(path::String)::Dict{String, Vector{Float64}}
     embeddings = Dict{String, Vector{Float64}}()
@@ -155,30 +138,25 @@ function load_text_embeddings(path::String)::Dict{String, Vector{Float64}}
     return embeddings
 end
 
-
 """
-    load_binary_embeddings(path::String) :: Dict{String, Vector{Float32}}
+    load_binary_embeddings(path::String) :: Dict{String, Vector{Float64}}
 
-Loads Word2Vec embeddings from a binary-format file.
+Loads Word2Vec embeddings from a Gensim binary-format file.
 
 # Arguments
-- `path::String`: Path to the binary-format Word2Vec embedding file.
+- `path::String`: Path to the Gensim binary-format embedding file.
 
 # Returns
-- A dictionary mapping words (`String`) to their embedding vectors (`Vector{Float32}`).
+- `Dict{String, Vector{Float64}}`: Dictionary mapping words to embedding vectors.
 
 # Notes
-- The file must start with a header line containing `vocab_size dim`, where both
-  values are integers. The function throws an error if the header is missing
-  or malformed.
-- The file is expected to follow the classic Word2Vec binary format: after the
-  header, there are `vocab_size` entries, each consisting of a word (terminated
-  by a space) and a vector of `dim` Float32 values.
-- A single newline may follow each vector; the loader handles it if present.
+- **Gensim hybrid format**: Text header `"vocab_size dim"`, ASCII words (space-terminated), binary Float32 vectors.
+- Vectors are automatically converted from `Float32` to `Float64` for consistency.
+- Matches output of `model.wv.save_word2vec_format(binary=True)` from gensim.test.utils.
+- No pure-binary Int32 header support (gensim-specific).
 """
-function load_binary_embeddings(path::String)::Dict{String, Vector{Float32}}
-    embeddings = Dict{String, Vector{Float32}}()
-
+function load_binary_embeddings(path::String)::Dict{String, Vector{Float64}}
+    embeddings = Dict{String, Vector{Float64}}()
     open(path, "r") do io
         # Read and validate header: "vocab_size dim\n"
         header = readline(io)
@@ -192,30 +170,22 @@ function load_binary_embeddings(path::String)::Dict{String, Vector{Float32}}
         if vocab_size === nothing || dim === nothing
             error("Invalid binary Word2Vec header: tokens must be integers")
         end
-
+        
         for _ in 1:vocab_size
-            # Read word (terminated by space)
+            # Read word (space-terminated)
             word_bytes = UInt8[]
             while true
                 c = read(io, UInt8)
-                if c == 0x20  # space
-                    break
-                end
+                c == 0x20 && break  # space
                 push!(word_bytes, c)
             end
             word = String(word_bytes)
-
-            # Read vector
-            vec = read(io, Float32, dim)
-            embeddings[word] = vec
-
-            # Skip single newline after vector if present
-            if !eof(io)
-                peek_byte = read(io, UInt8; keep=true)
-                peek_byte == 0x0A && read(io, UInt8)
-            end
+            
+            # Read binary vector and convert to Float64
+            vec32 = Vector{Float32}(undef, dim)
+            read!(io, vec32)
+            embeddings[word] = Float64.(vec32)
         end
     end
-
     return embeddings
 end
