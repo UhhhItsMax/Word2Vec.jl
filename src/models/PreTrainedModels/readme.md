@@ -1,0 +1,1 @@
+link to model: https://nlp.stanford.edu/projects/glove/
