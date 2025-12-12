@@ -82,26 +82,17 @@ function detect_embedding_format(path::AbstractString)::Symbol
     fmt::Symbol = :binary  # default assumption
 
     open(path, "r") do io
-        for (i, line) in enumerate(Iterators.take(eachline(io), 200))
-            s = strip(line)
-            isempty(s) && continue
+        for (i, line) in enumerate(Iterators.take(eachline(io), 10))
+            line = strip(line)
+            isempty(line) && continue
 
-            tokens = split(s)
+            tokens = split(line)
             length(tokens) < 2 && continue
 
             word = tokens[1]
-            first_vec = tokens[2]
+            vec = tokens[2:end]
 
-            wnum = tryparse(Float64, word)
-            vnum = tryparse(Float64, first_vec)
-
-            # Case 1: numeric header like "3 5" → both numeric → skip
-            if wnum !== nothing && vnum !== nothing
-                continue
-            end
-
-            # Case 2: word + first float → TEXT
-            if wnum === nothing && vnum !== nothing
+            if tryparse(Float64, word) === nothing && all(t -> tryparse(Float64, t) !== nothing, vec)
                 fmt = :text
                 break
             end
@@ -137,8 +128,7 @@ function load_text_embeddings(path::String)::Dict{String, Vector{Float64}}
                 word, vec_tokens = tokens[1], tokens[2:end]
 
                 # Ensure first token is a word, rest are floats
-                if tryparse(Float64, word) === nothing && 
-                   all(t -> tryparse(Float64, t) !== nothing, vec_tokens)
+                if tryparse(Float64, word) === nothing && all(t -> tryparse(Float64, t) !== nothing, vec_tokens)
                     embeddings[word] = parse.(Float64, vec_tokens)
                 end
             end
