@@ -1,4 +1,4 @@
-export Word2VecModel, from_pretrained_model, get_embedding, get_embedding_norm
+export Word2VecModel, from_pretrained_model, get_embedding
 
 using LinearAlgebra: norm, dot
 
