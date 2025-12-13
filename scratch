@@ -1,0 +1,49 @@
+"""
+	get_approximate_words(model::Word2VecModel, target::Vector{AbstractFloat}; n::Int = 1)
+
+Find the word and similarity score whose embedding maximizes cosine similarity with `target`.
+Throws an error if dimensions mismatch or the vocabulary is empty.
+"""
+function get_approximate_words(model::Word2VecModel, target::Vector{F}; n::Int = 1) where {F<:AbstractFloat}
+	size(model.embeddings, 2) == length(target) || throw(ArgumentError("feature vector has wrong dimension"))
+	!isempty(model.vocab) || throw(ArgumentError("vocabulary is empty"))
+
+	target_norm = norm(target)
+	target_norm > 0 || throw(ArgumentError("target embedding has zero norm"))
+
+	# compute n best word indices wrt. cosine similarity to the target vector
+	best_indices = partialsortperm(
+		1:size(model.embeddings, 2),
+		1:n;
+		by = idx -> (model.embeddings[:, idx] ⋅ target) / (model.vector_norms[idx] * target_norm)
+		)
+
+	return model.vocab[best_indices]
+end
+
+
+"""
+	get_analogy_words(model::Word2VecModel, include::Vector{String}, exclude::Vector{String})
+
+Computes the n best most similar words that relate to words in the include vector while not relating to the words
+in the exclude vector. The target vector used for comparison is given by the sum over the embedding vectors of 
+words to include minus the sum over embedding vectors of words to exclude
+
+Throws an error if no reference word is given or any reference word is not in the vocabulary of the model.
+"""
+function get_approximate_words(model::Word2VecModel, include::Vector{String}, exclude::Vector{String}; n::Int = 1)
+	total = length(include) + length(exclude)
+	total > 0 || throw(ArgumentError("must provide at least one word to include or exclude"))
+
+	target = zeros(Float32, size(model.embeddings, 2))
+
+	for w in include
+		target .+= get_embedding(model, w)
+	end
+
+	for w in exclude
+		target .-= get_embedding(model, w)
+	end
+
+	return get_approximate_words(model, target; n=n)
+end
