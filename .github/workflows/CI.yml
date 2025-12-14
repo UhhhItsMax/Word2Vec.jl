@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
-    tags: ['*']
+    tags: ["*"]
   pull_request:
   workflow_dispatch:
 
@@ -24,12 +24,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['1.10', '1.11']
+        version: ["1.10", "1.11"]
         os: [ubuntu-latest, macos-latest]
         arch: [x64]
 
     env:
-      JULIA_NUM_THREADS: '2'
+      JULIA_NUM_THREADS: "2"
 
     steps:
       - uses: actions/checkout@v4
@@ -76,36 +76,45 @@ jobs:
 
       - uses: julia-actions/setup-julia@v2
         with:
-          version: '1.11'
+          version: "1.11"
 
       - uses: julia-actions/cache@v2
 
-      - name: Instantiate docs environment
-        shell: julia --project=docs --color=yes {0}
-        working-directory: ${{ github.workspace }}
+      - name: Debug workspace
+        shell: bash
         run: |
-          using Pkg
-          Pkg.develop(PackageSpec(path=pwd()))
-          Pkg.instantiate()
+          echo "PWD=$(pwd)"
+          echo "GITHUB_WORKSPACE=${GITHUB_WORKSPACE}"
+          ls -la
+          ls -la docs || true
+          ls -la docs/make.jl || true
+          ls -la site || true
+          ls -la site/index.html || true
+
+      - name: Instantiate docs environment
+        shell: bash
+        run: |
+          cd "${GITHUB_WORKSPACE}"
+          julia --project=docs --color=yes -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
 
       - name: Build docs
-        shell: julia --project=docs --color=yes {0}
-        working-directory: ${{ github.workspace }}
+        shell: bash
         run: |
-          include("docs/make.jl")
+          cd "${GITHUB_WORKSPACE}"
+          julia --project=docs --color=yes -e 'include("docs/make.jl")'
 
       - name: Add landing page to deploy root
+        shell: bash
         run: |
+          cd "${GITHUB_WORKSPACE}"
           test -f site/index.html
           cp site/index.html docs/build/index.html
 
       - name: Run doctests
-        shell: julia --project=docs --color=yes {0}
+        shell: bash
         run: |
-          using Documenter: DocMeta, doctest
-          using Word2Vec
-          DocMeta.setdocmeta!(Word2Vec, :DocTestSetup, :(using Word2Vec); recursive=true)
-          doctest(Word2Vec)
+          cd "${GITHUB_WORKSPACE}"
+          julia --project=docs --color=yes -e 'using Documenter: DocMeta, doctest; using Word2Vec; DocMeta.setdocmeta!(Word2Vec, :DocTestSetup, :(using Word2Vec); recursive=true); doctest(Word2Vec)'
 
       - name: Deploy docs
         if: ${{ github.event_name == 'push' }}
