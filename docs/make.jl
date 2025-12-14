@@ -17,14 +17,23 @@ makedocs(
     ],
 )
 
+let landing = normpath(joinpath(@__DIR__, "..", "site", "index.html")),
+    target  = normpath(joinpath(@__DIR__, "build", "index.html"))
+
+    if isfile(landing)
+        mkpath(dirname(target))
+        cp(landing, target; force = true)
+    else
+        @warn "Landing page not found at $(landing). Create site/index.html to enable the Pages landing page."
+    end
+end
+
 deploydocs(
     repo = "github.com/UhhhItsMax/Word2Vec.jl.git",
     devbranch = "main",
-
     devurl = "docs/dev",
     versions = [
         "docs/stable" => "v^",
     ],
-
     forcepush = true,
 )
