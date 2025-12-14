@@ -103,13 +103,6 @@ jobs:
           cd "${GITHUB_WORKSPACE}"
           julia --project=docs --color=yes -e 'include("docs/make.jl")'
 
-      - name: Add landing page to deploy root
-        shell: bash
-        run: |
-          cd "${GITHUB_WORKSPACE}"
-          test -f site/index.html
-          cp site/index.html docs/build/index.html
-
       - name: Run doctests
         shell: bash
         run: |
