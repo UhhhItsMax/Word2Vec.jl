@@ -24,7 +24,6 @@ deploydocs(
     devurl = "docs/dev",
     versions = [
         "docs/stable" => "v^",
-        "docs/dev"    => "dev",
     ],
 
     forcepush = true,
