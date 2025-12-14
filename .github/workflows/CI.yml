@@ -33,6 +33,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: julia-actions/setup-julia@v2
         with:
@@ -73,6 +75,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: julia-actions/setup-julia@v2
         with:
@@ -80,32 +84,24 @@ jobs:
 
       - uses: julia-actions/cache@v2
 
-      - name: Debug workspace
-        shell: bash
-        run: |
-          echo "PWD=$(pwd)"
-          echo "GITHUB_WORKSPACE=${GITHUB_WORKSPACE}"
-          ls -la
-          ls -la docs || true
-          ls -la docs/make.jl || true
-          ls -la site || true
-          ls -la site/index.html || true
-
       - name: Instantiate docs environment
         shell: bash
         run: |
+          set -euxo pipefail
           cd "${GITHUB_WORKSPACE}"
           julia --project=docs --color=yes -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
 
       - name: Build docs
         shell: bash
         run: |
+          set -euxo pipefail
           cd "${GITHUB_WORKSPACE}"
           julia --project=docs --color=yes -e 'include("docs/make.jl")'
 
       - name: Run doctests
         shell: bash
         run: |
+          set -euxo pipefail
           cd "${GITHUB_WORKSPACE}"
           julia --project=docs --color=yes -e 'using Documenter: DocMeta, doctest; using Word2Vec; DocMeta.setdocmeta!(Word2Vec, :DocTestSetup, :(using Word2Vec); recursive=true); doctest(Word2Vec)'
 
@@ -115,3 +111,36 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+
+      # GitHub Pages sometimes fails to serve Documenter's "stable" link.
+      # This step replaces it with a real directory copied from the latest v* folder.
+      - name: Fix stable folder for GitHub Pages
+        if: ${{ github.event_name == 'push' }}
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euxo pipefail
+          cd "${GITHUB_WORKSPACE}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Ensure we have the latest gh-pages
+          git fetch origin gh-pages:gh-pages
+          git switch gh-pages
+
+          # Find latest version directory like v0.1.0, v0.1.1, ...
+          latest="$(ls -d v* 2>/dev/null | grep -E '^v[0-9]' | sort -V | tail -1 || true)"
+          if [ -z "${latest}" ]; then
+            echo "No version folders found (v*). Skipping stable folder fix."
+            exit 0
+          fi
+
+          rm -rf stable
+          mkdir -p stable
+          cp -R "${latest}/." stable/
+
+          git add stable
+          git commit -m "Docs: make stable a real directory for GitHub Pages" || exit 0
+          git push origin gh-pages
