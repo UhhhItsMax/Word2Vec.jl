@@ -87,11 +87,15 @@ jobs:
           Pkg.develop(PackageSpec(path=pwd()))
           Pkg.instantiate()
 
-      - name: Build docs (and deploy on main only)
-        uses: julia-actions/julia-docdeploy@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+      - name: Build docs
+        shell: julia --project=docs --color=yes {0}
+        run: |
+          include("docs/make.jl")
+
+      - name: Add landing page to deploy root
+        run: |
+          test -f site/index.html
+          cp site/index.html docs/build/index.html
 
       - name: Run doctests
         shell: julia --project=docs --color=yes {0}
@@ -100,3 +104,10 @@ jobs:
           using Word2Vec
           DocMeta.setdocmeta!(Word2Vec, :DocTestSetup, :(using Word2Vec); recursive=true)
           doctest(Word2Vec)
+
+      - name: Deploy docs
+        if: ${{ github.event_name == 'push' }}
+        uses: julia-actions/julia-docdeploy@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
