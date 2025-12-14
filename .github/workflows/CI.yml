@@ -82,6 +82,7 @@ jobs:
 
       - name: Instantiate docs environment
         shell: julia --project=docs --color=yes {0}
+        working-directory: ${{ github.workspace }}
         run: |
           using Pkg
           Pkg.develop(PackageSpec(path=pwd()))
@@ -89,6 +90,7 @@ jobs:
 
       - name: Build docs
         shell: julia --project=docs --color=yes {0}
+        working-directory: ${{ github.workspace }}
         run: |
           include("docs/make.jl")
 
