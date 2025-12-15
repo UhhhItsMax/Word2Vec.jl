@@ -6,7 +6,7 @@ with automatic format detection.
 
 # Features
 - Detects whether a file is in text or binary Word2Vec format.
-- Loads embeddings into dictionaries mapping words (`String`) to vectors.
+- Loads embeddings into a vocab vector and a embedding matrix mapping words to vectors.
 - Handles optional header lines in text files.
 - Supports Gensim's hybrid binary format (text header + binary vectors).
 - Provides a unified `load_word2vec` function.
@@ -15,14 +15,6 @@ with automatic format detection.
 # Dependencies
 - Base Julia (no external packages required)
 - Uses `DelimitedFiles` from the standard library for reading files
-
-# Example
-using Word2VecLoader
-
-embeddings = load_word2vec("word2vec.bin") # or .txt
-vec = embeddings["king"]
-
-text
 """
 
 using DelimitedFiles
@@ -30,7 +22,7 @@ using DelimitedFiles
 export load_word2vec
 
 """
-    load_word2vec(path::String) :: Dict{String, Vector{Float64}}
+    load_word2vec(path::String) :: Tuple{Vector{String}, Matrix{Float64}}
 
 Loads Word2Vec embeddings from a file, automatically detecting whether the file
 is in text or binary format.
@@ -39,7 +31,7 @@ is in text or binary format.
 - `path::String`: Path to the Word2Vec embedding file.
 
 # Returns
-- `Dict{String, Vector{Float64}}`: Dictionary mapping words to embedding vectors.
+- `Tuple{Vector{String}, Matrix{Float64}}`: Vector containing the words, Matrix which contains their respective embedding vector.
 
 # Notes
 - Uses `detect_embedding_format` to determine file format.
@@ -48,7 +40,7 @@ is in text or binary format.
 - Binary vectors are converted to `Float64` for consistency.
 - Large models require substantial RAM.
 """
-function load_word2vec(path::String)
+function load_word2vec(path::String)::Tuple{Vector{String}, Matrix{Float64}}
     fmt = detect_embedding_format(path)
     if fmt == :text
         return load_text_embeddings(path)
@@ -103,7 +95,7 @@ function detect_embedding_format(path::AbstractString)::Symbol
 end
 
 """
-    load_text_embeddings(path::String) :: Dict{String, Vector{Float64}}
+    load_text_embeddings(path::String) :: Tuple{Vector{String}, Matrix{Float64}}
 
 Loads Word2Vec embeddings from a text-format file.
 
@@ -111,35 +103,48 @@ Loads Word2Vec embeddings from a text-format file.
 - `path::String`: Path to the text-format Word2Vec embedding file.
 
 # Returns
-- `Dict{String, Vector{Float64}}`: Dictionary mapping words to embedding vectors.
+- `Tuple{Vector{String}, Matrix{Float64}}`: Vector containing the words, Matrix which contains their respective embedding vector.
 
 # Notes
 - Each line: `word float float ...` (header lines auto-skipped).
 - Skips lines where first token is numeric or vectors can't be parsed.
 - Reads entire file into memory.
+- Throws ErrorException when there was no vocab found
 """
-function load_text_embeddings(path::String)::Dict{String, Vector{Float64}}
-    embeddings = Dict{String, Vector{Float64}}()
+function load_text_embeddings(path::String)::Tuple{Vector{String}, Matrix{Float64}}
+    vocab = String[]
+    vectors = Vector{Vector{Float64}}()
 
     open(path, "r") do io
         for line in eachline(io)
             tokens = split(line)
-            if length(tokens) >= 2
-                word, vec_tokens = tokens[1], tokens[2:end]
+            length(tokens) < 2 && continue
 
-                # Ensure first token is a word, rest are floats
-                if tryparse(Float64, word) === nothing && all(t -> tryparse(Float64, t) !== nothing, vec_tokens)
-                    embeddings[word] = parse.(Float64, vec_tokens)
-                end
+            word, vec_tokens = tokens[1], tokens[2:end]
+
+            # Skip header lines and invalid rows
+            if tryparse(Float64, word) === nothing &&
+               all(t -> tryparse(Float64, t) !== nothing, vec_tokens)
+
+                vec = parse.(Float64, vec_tokens)
+                push!(vocab, word)
+                push!(vectors, vec)
             end
         end
     end
 
-    return embeddings
+    isempty(vocab) && error("No valid vocab found in $path")
+
+    dim = length(vectors[1])
+    embeddings = Matrix{Float64}(undef, length(vocab), dim)
+
+    embeddings = hcat(vectors...)'
+
+    return vocab, embeddings
 end
 
 """
-    load_binary_embeddings(path::String) :: Dict{String, Vector{Float64}}
+    load_binary_embeddings(path::String) :: Tuple{Vector{String}, Matrix{Float64}}
 
 Loads Word2Vec embeddings from a Gensim binary-format file.
 
@@ -147,7 +152,7 @@ Loads Word2Vec embeddings from a Gensim binary-format file.
 - `path::String`: Path to the Gensim binary-format embedding file.
 
 # Returns
-- `Dict{String, Vector{Float64}}`: Dictionary mapping words to embedding vectors.
+- `Tuple{Vector{String}, Matrix{Float64}}`: Vector containing the words, Matrix which contains their respective embedding vector.
 
 # Notes
 - **Gensim hybrid format**: Text header `"vocab_size dim"`, ASCII words (space-terminated), binary Float32 vectors.
@@ -155,8 +160,7 @@ Loads Word2Vec embeddings from a Gensim binary-format file.
 - Matches output of `model.wv.save_word2vec_format(binary=True)` from gensim.test.utils.
 - No pure-binary Int32 header support (gensim-specific).
 """
-function load_binary_embeddings(path::String)::Dict{String, Vector{Float64}}
-    embeddings = Dict{String, Vector{Float64}}()
+function load_binary_embeddings(path::String)::Tuple{Vector{String}, Matrix{Float64}}
     open(path, "r") do io
         # Read and validate header: "vocab_size dim\n"
         header = readline(io)
@@ -171,7 +175,10 @@ function load_binary_embeddings(path::String)::Dict{String, Vector{Float64}}
             error("Invalid binary Word2Vec header: tokens must be integers")
         end
         
-        for _ in 1:vocab_size
+        vocab = Vector{String}(undef, vocab_size)
+        embeddings = Matrix{Float64}(undef, vocab_size, dim)
+        vec32 = Vector{Float32}(undef, dim)
+        for i in 1:vocab_size
             # Read word (space-terminated)
             word_bytes = UInt8[]
             while true
@@ -180,12 +187,15 @@ function load_binary_embeddings(path::String)::Dict{String, Vector{Float64}}
                 push!(word_bytes, c)
             end
             word = String(word_bytes)
+
+            # Read binary vector (Float32)
             
-            # Read binary vector and convert to Float64
-            vec32 = Vector{Float32}(undef, dim)
             read!(io, vec32)
-            embeddings[word] = Float64.(vec32)
+
+            # Store
+            vocab[i] = word
+            embeddings[i, :] .= vec32  # auto-converts Float32 → Float64
         end
+        return vocab, embeddings
     end
-    return embeddings
 end
