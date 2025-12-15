@@ -6,7 +6,8 @@ export Word2VecModel,
        train_skipgram,
        train_cbow,
        conec_embedding,
-       from_pretrained
+       from_pretrained,
+       load_pretrained_model
 
 include("models/Word2VecModel.jl")
 
