@@ -3,26 +3,32 @@ using Word2Vec
 
 @testset "load_word2vec" begin
     
-    @testset "normal models" begin
+    @testset "normal text models" begin
         txt_path_1 = joinpath(@__DIR__, "data", "small_model.txt")
-        bin_path   = joinpath(@__DIR__, "data", "word2vec.bin")
         txt_path_2 = joinpath(@__DIR__, "data", "word2vec.txt")
 
-        emb = Word2Vec.load_word2vec(txt_path_1)
-        @test length(emb) == 3
-        @test emb["king"] == [0.1, 0.2, 0.3, 0.4, 0.5]
-        @test emb["queen"] == [0.2, 0.1, 0.4, 0.3, 0.0]
-        @test emb["man"] == [0.0, 0.1, 0.0, 0.1, 0.0]
+        vocab, emb = Word2Vec.load_word2vec(txt_path_1)
+        @test length(vocab) == 3
+        @test vocab[1] == "king"
+        @test emb[1, :] == [0.1, 0.2, 0.3, 0.4, 0.5]
+        @test vocab[2] == "queen"
+        @test emb[2, :] == [0.2, 0.1, 0.4, 0.3, 0.0]
+        @test vocab[3] == "man"
+        @test emb[3, :] == [0.0, 0.1, 0.0, 0.1, 0.0]
 
-        emb = Word2Vec.load_word2vec(txt_path_2)
-        @test length(emb) == 12
-        @test emb["system"] !== nothing
-        @test emb["system"][1] == -0.00053622725
+        vocab, emb = Word2Vec.load_word2vec(txt_path_2)
+        @test length(vocab) == 12
+        @test vocab[1] == "system"
+        @test emb[1, 1] == -0.00053622725
+    end
 
-        emb = Word2Vec.load_binary_embeddings(bin_path)
-        @test length(emb) == 12
-        @test emb["system"] !== nothing
-        @test emb["system"][1] == Float32(-0.00053622725)
+    @testset "normal bin model" begin
+        bin_path   = joinpath(@__DIR__, "data", "word2vec.bin")
+
+        vocab, emb = Word2Vec.load_binary_embeddings(bin_path)
+        @test length(vocab) == 12
+        @test vocab[1] == "system"
+        @test emb[1, 1] == Float32(-0.00053622725)
     end
 
 end
@@ -100,19 +106,22 @@ end
 
     @testset "mormal modes" begin
         txt_path_1 = joinpath(@__DIR__, "data", "small_model.txt")
-        bin_path   = joinpath(@__DIR__, "data", "word2vec.bin")
         txt_path_2 = joinpath(@__DIR__, "data", "word2vec.txt")
-
-        emb = Word2Vec.load_text_embeddings(txt_path_1)
     
-        @test length(emb) == 3
-        @test emb["king"] == [0.1, 0.2, 0.3, 0.4, 0.5]
-        @test emb["queen"] == [0.2, 0.1, 0.4, 0.3, 0.0]
-        @test emb["man"] == [0.0, 0.1, 0.0, 0.1, 0.0]
+        vocab, emb = Word2Vec.load_word2vec(txt_path_1)
+        @test length(vocab) == 3
+        @test vocab[1] == "king"
+        @test emb[1, :] == [0.1, 0.2, 0.3, 0.4, 0.5]
+        @test vocab[2] == "queen"
+        @test emb[2, :] == [0.2, 0.1, 0.4, 0.3, 0.0]
+        @test vocab[3] == "man"
+        @test emb[3, :] == [0.0, 0.1, 0.0, 0.1, 0.0]
 
-        emb = Word2Vec.load_text_embeddings(txt_path_2)
-
-        @test length(emb) == 12
+        vocab, emb = Word2Vec.load_word2vec(txt_path_2)
+        @test length(vocab) == 12
+        @test vocab[1] == "system"
+        @test emb[1,1] == -0.00053622725
+        @test typeof(emb[1,1]) == Float64
     end
 
     @testset "simple valid file" begin
@@ -126,11 +135,13 @@ end
                 """)
             end
 
-            emb = Word2Vec.load_text_embeddings(f)
+            vocab, emb = Word2Vec.load_text_embeddings(f)
 
-            @test length(emb) == 2
-            @test emb["king"] == [0.1, 0.2, 0.3]
-            @test emb["queen"] == [1.0, 2.0, 3.0]
+            @test length(vocab) == 2
+            @test vocab[1] == "king"
+            @test emb[1, :] == [0.1, 0.2, 0.3]
+            @test vocab[2] == "queen"
+            @test emb[2, :] == [1.0, 2.0, 3.0]
         end
     end
 
@@ -145,10 +156,10 @@ end
                 """)
             end
 
-            emb = Word2Vec.load_text_embeddings(f)
+            vocab, emb = Word2Vec.load_text_embeddings(f)
 
-            @test length(emb) == 1
-            @test haskey(emb, "king")
+            @test length(vocab) == 1
+            @test vocab[1] == "king"
         end
     end
 
@@ -164,10 +175,11 @@ end
                 """)
             end
 
-            emb = Word2Vec.load_text_embeddings(f)
+            vocab, emb = Word2Vec.load_text_embeddings(f)
 
-            @test length(emb) == 1
-            @test emb["queen"] == [1.0, 2.0, 3.0]
+            @test length(vocab) == 1
+            @test vocab[1] == "queen"
+            @test emb[1, :] == [1.0, 2.0, 3.0]
         end
     end
 
@@ -178,10 +190,10 @@ end
                 write(io, "atom 1e-3 2e+1 -3e-2\n")
             end
 
-            emb = Word2Vec.load_text_embeddings(f)
+            vocab, emb = Word2Vec.load_text_embeddings(f)
 
-            @test haskey(emb, "atom")
-            @test emb["atom"] ≈ [1e-3, 20.0, -0.03]
+            @test vocab[1] == "atom"
+            @test emb[1, :] ≈ [1e-3, 20.0, -0.03]
         end
     end
 
@@ -192,10 +204,11 @@ end
                 write(io, "mp3player 0.1 0.2 0.3\n")
             end
 
-            emb = Word2Vec.load_text_embeddings(f)
+            vocab, emb = Word2Vec.load_text_embeddings(f)
 
-            @test length(emb) == 1
-            @test emb["mp3player"] == [0.1, 0.2, 0.3]
+            @test length(vocab) == 1
+            @test vocab[1] == "mp3player"
+            @test emb[1, :] == [0.1, 0.2, 0.3]
         end
     end
 
@@ -207,38 +220,32 @@ end
                 """
                 king 0.1 0.2 0.3
                 badline x y z
-                numeric 1 2 3   # should be skipped (word is number)
                 123 1 2 3
                 queen 4 5 6
                 """)
             end
 
-            emb = Word2Vec.load_text_embeddings(f)
+            vocab, emb = Word2Vec.load_text_embeddings(f)
 
-            @test length(emb) == 2
-            @test haskey(emb, "king")
-            @test haskey(emb, "queen")
-            @test !haskey(emb, "numeric")
-            @test !haskey(emb, "123")
-            @test !haskey(emb, "badline")
+            @test length(vocab) == 2
+            @test vocab[1] == "king"
+            @test vocab[2] == "queen"
         end
     end
 
-    @testset "duplicate words overwrite last" begin
+    @testset "throws error when no vocab" begin
         mktempdir() do d
             f = joinpath(d, "dup.txt")
             open(f, "w") do io
                 write(io,
                 """
-                cat 1 1 1
-                cat 2 2 2
+                123 1 1 1
+                42 2 2 2
                 """)
             end
 
-            emb = Word2Vec.load_text_embeddings(f)
+             @test_throws ErrorException Word2Vec.load_text_embeddings(f)
 
-            @test length(emb) == 1
-            @test emb["cat"] == [2.0, 2.0, 2.0]
         end
     end
 
@@ -249,11 +256,13 @@ end
     @testset "normal model" begin
         bin_path   = joinpath(@__DIR__, "data", "word2vec.bin")
 
-        emb = Word2Vec.load_binary_embeddings(bin_path)
+        vocab, emb = Word2Vec.load_binary_embeddings(bin_path)
 
-        @test length(emb) == 12
-        @test emb["system"] !== nothing
-        @test emb["system"][1] == Float32(-0.00053622725)
+        @test length(vocab) == 12
+        @test size(emb) == (12, 100)
+        @test vocab[1] == "system"
+        @test emb[1,1] == Float32(-0.00053622725)
+        @test typeof(emb[1,1]) == Float64
 
     end
 
@@ -274,12 +283,13 @@ end
                 write(io, Float32[0.5, 0.5])
             end
 
-            emb = Word2Vec.load_binary_embeddings(f)
+            vocab, emb = Word2Vec.load_binary_embeddings(f)
 
-            @test haskey(emb, "word_123")
-            @test haskey(emb, "ümlaut")
-            @test emb["word_123"] == [Float32(1.0), Float32(-1.0)]
-            @test emb["ümlaut"] == [Float32(0.5), Float32(0.5)]
+            @test length(vocab) == 2
+            @test vocab[1] == "word_123"
+            @test vocab[2] == "ümlaut"
+            @test emb[1, :] == [Float32(1.0), Float32(-1.0)]
+            @test emb[2, :] == [Float32(0.5), Float32(0.5)]
         end
     end
 
