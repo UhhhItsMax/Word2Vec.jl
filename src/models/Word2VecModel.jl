@@ -29,7 +29,7 @@ struct Word2VecModel
 		@inbounds for (j, col) in enumerate(eachcol(embeddings))
 			n = norm(col)
 			n == 0 && throw(ArgumentError("embedding vector has zero norm for word $(vocab[j])"))
-			vector_norms[j] = n
+			vector_norms[j] = Float64(n)
 		end
 
 		return new(vocab, embeddings, vector_norms, word_to_index)
