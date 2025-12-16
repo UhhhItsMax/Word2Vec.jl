@@ -138,7 +138,7 @@ function load_text_embeddings(path::String)::Tuple{Vector{String}, Matrix{Float6
     dim = length(vectors[1])
     embeddings = Matrix{Float64}(undef, length(vocab), dim)
 
-    embeddings = hcat(vectors...)'
+    embeddings = hcat(vectors...)
 
     return vocab, embeddings
 end
@@ -176,7 +176,7 @@ function load_binary_embeddings(path::String)::Tuple{Vector{String}, Matrix{Floa
         end
         
         vocab = Vector{String}(undef, vocab_size)
-        embeddings = Matrix{Float64}(undef, vocab_size, dim)
+        embeddings = Matrix{Float64}(undef, dim, vocab_size)
         vec32 = Vector{Float32}(undef, dim)
         for i in 1:vocab_size
             # Read word (space-terminated)
@@ -194,7 +194,7 @@ function load_binary_embeddings(path::String)::Tuple{Vector{String}, Matrix{Floa
 
             # Store
             vocab[i] = word
-            embeddings[i, :] .= vec32  # auto-converts Float32 → Float64
+            embeddings[:, i] .= vec32  # auto-converts Float32 → Float64
         end
         return vocab, embeddings
     end

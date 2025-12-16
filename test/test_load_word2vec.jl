@@ -10,11 +10,11 @@ using Word2Vec
         vocab, emb = Word2Vec.load_word2vec(txt_path_1)
         @test length(vocab) == 3
         @test vocab[1] == "king"
-        @test emb[1, :] == [0.1, 0.2, 0.3, 0.4, 0.5]
+        @test emb[:, 1] == [0.1, 0.2, 0.3, 0.4, 0.5]
         @test vocab[2] == "queen"
-        @test emb[2, :] == [0.2, 0.1, 0.4, 0.3, 0.0]
+        @test emb[:, 2] == [0.2, 0.1, 0.4, 0.3, 0.0]
         @test vocab[3] == "man"
-        @test emb[3, :] == [0.0, 0.1, 0.0, 0.1, 0.0]
+        @test emb[:, 3] == [0.0, 0.1, 0.0, 0.1, 0.0]
 
         vocab, emb = Word2Vec.load_word2vec(txt_path_2)
         @test length(vocab) == 12
@@ -111,11 +111,11 @@ end
         vocab, emb = Word2Vec.load_word2vec(txt_path_1)
         @test length(vocab) == 3
         @test vocab[1] == "king"
-        @test emb[1, :] == [0.1, 0.2, 0.3, 0.4, 0.5]
+        @test emb[:, 1] == [0.1, 0.2, 0.3, 0.4, 0.5]
         @test vocab[2] == "queen"
-        @test emb[2, :] == [0.2, 0.1, 0.4, 0.3, 0.0]
+        @test emb[:, 2] == [0.2, 0.1, 0.4, 0.3, 0.0]
         @test vocab[3] == "man"
-        @test emb[3, :] == [0.0, 0.1, 0.0, 0.1, 0.0]
+        @test emb[:, 3] == [0.0, 0.1, 0.0, 0.1, 0.0]
 
         vocab, emb = Word2Vec.load_word2vec(txt_path_2)
         @test length(vocab) == 12
@@ -139,9 +139,9 @@ end
 
             @test length(vocab) == 2
             @test vocab[1] == "king"
-            @test emb[1, :] == [0.1, 0.2, 0.3]
+            @test emb[:, 1] == [0.1, 0.2, 0.3]
             @test vocab[2] == "queen"
-            @test emb[2, :] == [1.0, 2.0, 3.0]
+            @test emb[:, 2] == [1.0, 2.0, 3.0]
         end
     end
 
@@ -179,7 +179,7 @@ end
 
             @test length(vocab) == 1
             @test vocab[1] == "queen"
-            @test emb[1, :] == [1.0, 2.0, 3.0]
+            @test emb[:, 1] == [1.0, 2.0, 3.0]
         end
     end
 
@@ -193,7 +193,7 @@ end
             vocab, emb = Word2Vec.load_text_embeddings(f)
 
             @test vocab[1] == "atom"
-            @test emb[1, :] ≈ [1e-3, 20.0, -0.03]
+            @test emb[:, 1] ≈ [1e-3, 20.0, -0.03]
         end
     end
 
@@ -208,7 +208,7 @@ end
 
             @test length(vocab) == 1
             @test vocab[1] == "mp3player"
-            @test emb[1, :] == [0.1, 0.2, 0.3]
+            @test emb[:, 1] == [0.1, 0.2, 0.3]
         end
     end
 
@@ -259,7 +259,7 @@ end
         vocab, emb = Word2Vec.load_binary_embeddings(bin_path)
 
         @test length(vocab) == 12
-        @test size(emb) == (12, 100)
+        @test size(emb) == (100, 12)
         @test vocab[1] == "system"
         @test emb[1,1] == Float32(-0.00053622725)
         @test typeof(emb[1,1]) == Float64
@@ -288,8 +288,8 @@ end
             @test length(vocab) == 2
             @test vocab[1] == "word_123"
             @test vocab[2] == "ümlaut"
-            @test emb[1, :] == [Float32(1.0), Float32(-1.0)]
-            @test emb[2, :] == [Float32(0.5), Float32(0.5)]
+            @test emb[:, 1] == [Float32(1.0), Float32(-1.0)]
+            @test emb[:, 2] == [Float32(0.5), Float32(0.5)]
         end
     end
 
