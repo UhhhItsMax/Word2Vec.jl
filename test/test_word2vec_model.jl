@@ -50,3 +50,44 @@ end
     end
 end
 
+@testset "from_dict_data" begin
+    embeddings_map = Dict(
+        "alpha" => Float32[1, 0, 0.5],
+        "beta" => Float32[-1, 2, 0],
+    )
+
+    model = Word2Vec.from_dict_data(embeddings_map)
+
+    @test size(model.embeddings) == (3, 2)
+    @test eltype(model.embeddings) === Float64
+    @test Word2Vec.get_embedding(model, "alpha") == Float64[1, 0, 0.5]
+    @test Word2Vec.get_embedding(model, "beta") == Float64[-1, 2, 0]
+end
+
+@testset "load_pretrained_model" begin
+    data_dir = joinpath(@__DIR__, "data")
+    bin_path = joinpath(data_dir, "word2vec.bin")
+    txt_path = joinpath(data_dir, "word2vec.txt")
+
+    @testset "binary embeddings" begin
+        model = Word2Vec.load_pretrained_model(bin_path; fmt = :binary)
+
+        @test size(model.embeddings) == (100, 12)
+        @test model.vocab[1] == "system"
+
+        system_vec = Word2Vec.get_embedding(model, "system")
+        @test system_vec[1] ≈ -0.00053622725
+        @test Word2Vec.get_embedding_norm(model, "system") ≈ norm(system_vec)
+    end
+
+    @testset "text embeddings auto-detected" begin
+        model = Word2Vec.load_pretrained_model(txt_path)
+
+        @test size(model.embeddings) == (100, 12)
+        @test model.vocab[2] == "graph"
+
+        graph_vec = Word2Vec.get_embedding(model, "graph")
+        @test graph_vec[1] ≈ -0.0086196875
+        @test graph_vec[3] ≈ 0.0051898835
+    end
+end
