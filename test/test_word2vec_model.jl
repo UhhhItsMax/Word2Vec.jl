@@ -5,7 +5,7 @@ using Word2Vec
 @testset "Word2VecModel constructor" begin
     @testset "builds lookup structures and norms" begin
         vocab = ["one", "two"]
-        embeddings = reshape(Float32[2, 2, 1, -2, 0, 0], 3, 2)
+        embeddings = reshape(Float64[2, 2, 1, -2, 0, 0], 3, 2)
 
         model = Word2Vec.Word2VecModel(vocab, embeddings)
 
@@ -15,14 +15,14 @@ using Word2Vec
 
     @testset "rejects mismatched shapes" begin
         vocab = ["one", "two"]
-        bad_embeddings = ones(Float32, 3, 3)
+        bad_embeddings = ones(Float64, 3, 3)
 
         @test_throws ArgumentError Word2Vec.Word2VecModel(vocab, bad_embeddings)
     end
 
     @testset "rejects zero vectors" begin
         vocab = ["nonzero", " zero"]
-        embeddings = Float32[0 1; 0 0]
+        embeddings = Float64[0 1; 0 0]
 
         @test_throws ArgumentError Word2Vec.Word2VecModel(vocab, embeddings)
     end
@@ -31,12 +31,12 @@ end
 
 @testset "embedding getters" begin
     vocab = ["one", "two"]
-    embeddings = reshape(Float32[2, 2, 1, 1, 2, 3], 3, 2)
+    embeddings = reshape(Float64[2, 2, 1, 1, 2, 3], 3, 2)
     model = Word2Vec.Word2VecModel(vocab, embeddings)
 
     @testset "by index returns view" begin
         emb = Word2Vec.get_embedding(model, "two")
-        @test emb == Float32[1, 2, 3]
+        @test emb == Float64[1, 2, 3]
         @test parent(emb) === model.embeddings
     end
 
