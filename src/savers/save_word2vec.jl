@@ -1,3 +1,24 @@
+"""
+    Word2VecSaver
+
+A Julia module for saving `Word2VecModel` embeddings to disk in either
+text or binary Word2Vec format.
+
+# Features
+- Saves embeddings in human-readable text format (`word val1 val2 ...`).
+- Saves embeddings in the classic Word2Vec binary format (Float32 vectors).
+- Overwrites existing files safely.
+- Provides a unified `save_word2vec` function that chooses format via a keyword argument.
+- Internal helper functions `_save_word2vec_text` and `_save_word2vec_binary`
+  handle format-specific writing.
+
+# Supported Formats
+- `:text`   — Human-readable, compatible with Gensim.
+- `:binary` — Standard Word2Vec C implementation binary format, smaller and faster to load.
+
+# Dependencies
+- Base Julia (no external packages required)
+"""
 
 export save_word2vec
 
