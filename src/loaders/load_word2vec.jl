@@ -14,10 +14,7 @@ with automatic format detection.
 
 # Dependencies
 - Base Julia (no external packages required)
-- Uses `DelimitedFiles` from the standard library for reading files
 """
-
-using DelimitedFiles
 
 export load_word2vec
 
