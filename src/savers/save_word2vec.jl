@@ -87,12 +87,7 @@ function _save_word2vec_text(model::Word2VecModel, path::AbstractString)::Abstra
         # One word per line
         for (j, word) in enumerate(model.vocab)
             vec = model.embeddings[:, j]
-            print(io, word)
-            for x in vec
-                print(io, ' ')
-                print(io, x)
-            end
-            println(io)
+            println(io, join([word; string.(vec)], " "))
         end
     end
 
