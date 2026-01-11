@@ -15,12 +15,12 @@ include("models/Word2VecModel.jl")
 include("loaders/load_word2vec.jl")
 include("savers/save_word2vec.jl")
 
+include("utils/circular_buffer.jl")
+include("utils/math_utils.jl")
+
 include("training/skipgram.jl")
 include("training/cbow.jl")
 
 include("conec/conec.jl")
-
-include("utils/math_utils.jl")
-include("utils/circular_buffer.jl")
 
 end
