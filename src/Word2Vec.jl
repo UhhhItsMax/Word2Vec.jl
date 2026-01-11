@@ -21,5 +21,6 @@ include("training/cbow.jl")
 include("conec/conec.jl")
 
 include("utils/math_utils.jl")
+include("utils/circular_buffer.jl")
 
 end
