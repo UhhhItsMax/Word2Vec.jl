@@ -3,6 +3,50 @@ export train_cbow
 using Random
 using LinearAlgebra: mul!
 
+
+"""
+train_cbow(corpus; dim=50, window=2, epochs=5, lr=0.05, min_count=1, seed=42, verbose=false) -> Word2VecModel
+
+Train a Word2Vec model using the **CBOW (Continuous Bag-of-Words)** objective.
+
+CBOW predicts each *target* word from the average of its surrounding *context* word vectors
+within a symmetric window. This implementation uses a full softmax with cross-entropy loss
+and is intended for **toy/small corpora** (time per update is `O(|V|)`).
+
+# Arguments
+- `corpus`: Training text, provided as either
+  - `Vector{<:AbstractString}`: a flat list of tokens, e.g. `split("the quick brown fox")`, or
+  - `Vector{Vector{<:AbstractString}}`: a list of tokenized sentences.
+
+# Keyword arguments
+- `dim::Int=50`: Embedding dimensionality.
+- `window::Int=2`: Context window size on each side of the target word.
+- `epochs::Int=5`: Number of passes over the corpus.
+- `lr::Float64=0.05`: Learning rate for SGD updates.
+- `min_count::Int=1`: Discard words with frequency `< min_count`.
+- `seed::Int=42`: RNG seed for reproducible training.
+- `verbose::Bool=false`: If `true`, print average loss per epoch.
+
+# Returns
+A `Word2VecModel` whose `embeddings` matrix stores the learned **input** word vectors `W_in`
+with shape `(dim, |vocab|)`.
+
+# Notes
+- This implementation uses **full softmax** (no negative sampling), so it is best suited for
+  small vocabularies and demonstration purposes.
+- Tokens filtered out by `min_count` are ignored during training.
+
+# Throws
+- ArgumentError("corpus is empty") if the corpus contains no tokens.
+- ArgumentError("vocab is empty after min_count filtering") if all tokens are filtered out.
+- ArgumentError if corpus is not a token vector or a vector of tokenized sentences.
+"""
+using Word2Vec
+
+tokens = split("the quick brown fox jumps over the lazy dog the fox is quick")
+m = train_cbow(tokens; dim=20, window=2, epochs=10, lr=0.05, seed=1)
+
+v = get_embedding(m, "fox")  # 20-element vector
 function train_cbow(
     corpus;
     dim::Int = 50,
@@ -99,6 +143,26 @@ function train_cbow(
     return Word2VecModel(vocab, W_in)
 end
 
+
+"""
+_flatten_corpus(corpus) -> Vector{String}
+
+Internal helper: normalize `corpus` into a single flat vector of `String` tokens.
+
+Accepted inputs:
+- `Vector{<:AbstractString}`: returned as `Vector{String}` via `String.(corpus)`.
+- `Vector{Vector{<:AbstractString}}`: each sentence is converted and concatenated into one token stream.
+
+This exists to support common inputs such as `split("...")`, which returns `Vector{SubString{String}}`.
+
+# Returns
+- A flat `Vector{String}` containing all tokens in order.
+
+# Throws
+- ArgumentError if corpus is neither a token vector nor a vector of tokenized sentences.
+- ArgumentError if any element in the sentence list is not AbstractVector{<:AbstractString}.
+"""
+Word2Vec._flatten_corpus([split("a b"), split("c d")]) == ["a","b","c","d"]
 function _flatten_corpus(corpus)
     if corpus isa AbstractVector{<:AbstractString}
         return String.(corpus)
@@ -115,6 +179,29 @@ function _flatten_corpus(corpus)
     end
 end
 
+
+"""
+_build_vocab_and_encode(tokens; min_count=1) -> (vocab, word_to_idx, idx_tokens)
+
+Internal helper: build a vocabulary from a flat token stream and encode tokens as integer indices.
+
+# Arguments
+- `tokens::Vector{String}`: Flat token list.
+
+# Keyword arguments
+- `min_count::Int=1`: Only keep tokens with frequency `>= min_count`.
+
+# Returns
+- `vocab::Vector{String}`:
+  Vocabulary list, sorted deterministically by decreasing frequency and then lexicographically.
+- `word_to_idx::Dict{String,Int}`:
+  Mapping from token to its 1-based index in `vocab`.
+- `idx_tokens::Vector{Int}`:
+  Encoded token stream. Tokens not in `vocab` are encoded as `0`.
+
+# Notes
+- This function does not throw if `vocab` becomes empty; callers may check `isempty(vocab)`.
+"""
 function _build_vocab_and_encode(tokens::Vector{String}; min_count::Int)
     counts = Dict{String, Int}()
     for w in tokens
@@ -135,6 +222,22 @@ function _build_vocab_and_encode(tokens::Vector{String}; min_count::Int)
     return vocab, word_to_idx, idx_tokens
 end
 
+"""
+_context_indices(idx_tokens, pos, window) -> Vector{Int}
+
+Internal helper: collect the encoded context word indices around `pos`.
+
+Context indices are taken from the range `[pos-window, pos+window]`, excluding `pos`.
+Any token encoded as `0` (filtered/unknown) is skipped.
+
+# Arguments
+- `idx_tokens::Vector{Int}`: Encoded token stream (0 indicates filtered/unknown).
+- `pos::Int`: Target position (1-based).
+- `window::Int`: Window size on each side.
+
+# Returns
+- A `Vector{Int}` of context vocabulary indices (positive integers). May be empty.
+"""
 function _context_indices(idx_tokens::Vector{Int}, pos::Int, window::Int)
     n = length(idx_tokens)
     lo = max(1, pos - window)
@@ -150,6 +253,25 @@ function _context_indices(idx_tokens::Vector{Int}, pos::Int, window::Int)
     return ctx
 end
 
+"""
+_softmax!(out, x) -> out
+
+Internal helper: compute a numerically stable softmax of `x` into `out` in-place.
+
+Uses the standard stabilization trick:
+`softmax(x) = exp.(x .- maximum(x)) ./ sum(exp.(x .- maximum(x)))`
+
+# Arguments
+- `out::Vector{Float64}`: Output buffer (same length as `x`).
+- `x::Vector{Float64}`: Input logits / scores.
+
+# Returns
+- The mutated `out` vector (for convenience).
+
+# Notes
+- Adds a small epsilon to the denominator to avoid division by zero in degenerate cases.
+- Intended for inner-loop use to reduce allocations.
+"""
 function _softmax!(out::Vector{Float64}, x::Vector{Float64})
     m = maximum(x)
     s = 0.0
