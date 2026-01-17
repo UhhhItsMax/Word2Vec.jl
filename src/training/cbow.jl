@@ -1,11 +1,12 @@
 export train_cbow
 
+using Word2Vec
 using Random
 using LinearAlgebra: mul!
 
 
 """
-train_cbow(corpus; dim=50, window=2, epochs=5, lr=0.05, min_count=1, seed=42, verbose=false) -> Word2VecModel
+    train_cbow(corpus; dim=50, window=2, epochs=5, lr=0.05, min_count=1, seed=42, verbose=false) -> Word2VecModel
 
 Train a Word2Vec model using the **CBOW (Continuous Bag-of-Words)** objective.
 
@@ -41,12 +42,6 @@ with shape `(dim, |vocab|)`.
 - ArgumentError("vocab is empty after min_count filtering") if all tokens are filtered out.
 - ArgumentError if corpus is not a token vector or a vector of tokenized sentences.
 """
-using Word2Vec
-
-tokens = split("the quick brown fox jumps over the lazy dog the fox is quick")
-m = train_cbow(tokens; dim=20, window=2, epochs=10, lr=0.05, seed=1)
-
-v = get_embedding(m, "fox")  # 20-element vector
 function train_cbow(
     corpus;
     dim::Int = 50,
@@ -145,7 +140,7 @@ end
 
 
 """
-_flatten_corpus(corpus) -> Vector{String}
+    _flatten_corpus(corpus) -> Vector{String}
 
 Internal helper: normalize `corpus` into a single flat vector of `String` tokens.
 
@@ -162,7 +157,6 @@ This exists to support common inputs such as `split("...")`, which returns `Vect
 - ArgumentError if corpus is neither a token vector nor a vector of tokenized sentences.
 - ArgumentError if any element in the sentence list is not AbstractVector{<:AbstractString}.
 """
-Word2Vec._flatten_corpus([split("a b"), split("c d")]) == ["a","b","c","d"]
 function _flatten_corpus(corpus)
     if corpus isa AbstractVector{<:AbstractString}
         return String.(corpus)
@@ -181,7 +175,7 @@ end
 
 
 """
-_build_vocab_and_encode(tokens; min_count=1) -> (vocab, word_to_idx, idx_tokens)
+    _build_vocab_and_encode(tokens; min_count=1) -> (vocab, word_to_idx, idx_tokens)
 
 Internal helper: build a vocabulary from a flat token stream and encode tokens as integer indices.
 
@@ -223,7 +217,7 @@ function _build_vocab_and_encode(tokens::Vector{String}; min_count::Int)
 end
 
 """
-_context_indices(idx_tokens, pos, window) -> Vector{Int}
+    _context_indices(idx_tokens, pos, window) -> Vector{Int}
 
 Internal helper: collect the encoded context word indices around `pos`.
 
@@ -254,7 +248,7 @@ function _context_indices(idx_tokens::Vector{Int}, pos::Int, window::Int)
 end
 
 """
-_softmax!(out, x) -> out
+    _softmax!(out, x) -> out
 
 Internal helper: compute a numerically stable softmax of `x` into `out` in-place.
 
