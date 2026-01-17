@@ -13,7 +13,7 @@ function train_cbow(
     seed::Int = 42,
     verbose::Bool = false,
 )
-    tokens =  (corpus)
+    tokens = _flatten_corpus(corpus)
     isempty(tokens) && throw(ArgumentError("corpus is empty"))
 
     vocab, word_to_idx, idx_tokens = _build_vocab_and_encode(tokens; min_count=min_count)
