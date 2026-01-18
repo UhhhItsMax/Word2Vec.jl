@@ -1,0 +1,6 @@
+# full line comment
+   # indented comment
+word1
+
+  word2  
+#x

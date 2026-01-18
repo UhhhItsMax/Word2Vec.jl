@@ -8,7 +8,9 @@ export Word2VecModel,
        train_cbow,
        conec_embedding,
        from_pretrained,
-       load_pretrained_model
+       load_pretrained_model,
+       embedding_points,
+       tsne_embeddings
 
 include("models/Word2VecModel.jl")
 
@@ -21,5 +23,9 @@ include("training/cbow.jl")
 include("conec/conec.jl")
 
 include("utils/math_utils.jl")
+include("utils/normalize.jl")
+include("utils/io_utils.jl")
+include("visualization/tsne.jl")
+include("visualization/plotting.jl")
 
 end
