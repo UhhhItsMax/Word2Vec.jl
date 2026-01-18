@@ -8,18 +8,21 @@ export Word2VecModel,
        train_cbow,
        conec_embedding,
        from_pretrained,
-       load_pretrained_model
+       load_pretrained_model,
+       analogy,
+       similarity
+
 
 include("models/Word2VecModel.jl")
 
 include("loaders/load_word2vec.jl")
 include("savers/save_word2vec.jl")
 
-include("training/skipgram.jl")
 include("training/cbow.jl")
 
 include("conec/conec.jl")
 
-include("utils/math_utils.jl")
+include("evaluation/evaluation.jl")
+#include("benchmark/benchmark.jl")
 
 end
