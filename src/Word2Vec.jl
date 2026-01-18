@@ -2,6 +2,7 @@ module Word2Vec
 
 export Word2VecModel,
        load_word2vec,
+       save_word2vec,
        get_embedding,
        train_skipgram,
        train_cbow,
@@ -12,6 +13,7 @@ export Word2VecModel,
 include("models/Word2VecModel.jl")
 
 include("loaders/load_word2vec.jl")
+include("savers/save_word2vec.jl")
 
 include("training/skipgram.jl")
 include("training/cbow.jl")
