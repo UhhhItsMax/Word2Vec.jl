@@ -1,9 +1,10 @@
 module sparse_context_matrix
 
+using Serialization: serialize, deserialize
 using SparseArrays: SparseMatrixCSC, sparse
 using ..CircularBuffers: CircularBuffer, isfull
 
-export SparseContextMatrix, build_context_matrix_from_file
+export SparseContextMatrix, build_context_matrix_from_file, save_sparse_context_matrix, load_sparse_context_matrix
 
 struct SparseContextMatrix{T<:Real}
     mat::SparseMatrixCSC{T, Int}
@@ -21,13 +22,64 @@ function build_context_matrix_from_file(
     path::AbstractString;
     window_size::Int = 5,
     min_count::Int = 1
-)::SparseContextMatrix{Int}
+)::SparseContextMatrix{Float64}
     token_counts = get_occurence_counts(path)
     vocab, token_to_id = filter_vocabulary(token_counts, min_count)
     token_coocs = get_co_occurence_counts(path, token_to_id, window_size)
-    mat = dict_to_sparse(token_coocs, length(vocab))
+    normalized_coocs = normalize_coocs(token_coocs, token_counts, token_to_id, length(vocab))
+    mat = dict_to_sparse(normalized_coocs, length(vocab))
 
     return SparseContextMatrix(mat, vocab, token_to_id)
+end
+
+
+"""
+    save_sparse_context_matrix(path::AbstractString, scm::SparseContextMatrix)
+
+Serialize a `SparseContextMatrix` to disk.
+"""
+function save_sparse_context_matrix(path::AbstractString, scm::SparseContextMatrix)
+    open(path, "w") do io
+        serialize(io, scm)
+    end
+    return nothing
+end
+
+
+"""
+    load_sparse_context_matrix(path::AbstractString)::SparseContextMatrix
+
+Deserialize a `SparseContextMatrix` from disk.
+"""
+function load_sparse_context_matrix(path::AbstractString)::SparseContextMatrix
+    open(path, "r") do io
+        return deserialize(io)
+    end
+end
+
+
+"""
+    normalize_coocs(token_coocs::Dict{Tuple{Int, Int}, Int}, token_counts::Dict{String, Int},
+                    token_to_id::Dict{String, Int}, vocab_size::Int)::Dict{Tuple{Int, Int}, Float64}
+
+Normalize each co-occurrence by 1/count(target).
+"""
+function normalize_coocs(
+    token_coocs::Dict{Tuple{Int, Int}, Int},
+    token_counts::Dict{String, Int},
+    token_to_id::Dict{String, Int},
+    vocab_size::Int
+)::Dict{Tuple{Int, Int}, Float64}
+    inv_target_counts = Vector{Float64}(undef, vocab_size)
+    for (tok, id) in token_to_id
+        inv_target_counts[id] = 1.0 / token_counts[tok]
+    end
+    normalized_coocs = Dict{Tuple{Int, Int}, Float64}()
+    sizehint!(normalized_coocs, length(token_coocs))
+    for ((cooc, target), v) in token_coocs
+        normalized_coocs[(cooc, target)] = v * inv_target_counts[target]
+    end
+    return normalized_coocs
 end
 
 
@@ -114,7 +166,7 @@ function dict_to_sparse(coocs::Dict{Tuple{Int, Int}, T}, n::Int)::SparseMatrixCS
     nnz = length(coocs)
     rows = Vector{Int}(undef, nnz)
     cols = Vector{Int}(undef, nnz)
-    vals = Vector{Int}(undef, nnz)
+    vals = Vector{T}(undef, nnz)
 
     k=1
     for ((r, c), v) in coocs
