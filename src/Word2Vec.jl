@@ -10,7 +10,9 @@ export Word2VecModel,
        from_pretrained,
        load_pretrained_model,
        analogy,
-       similarity
+       similarity,
+       benchmark_training
+
 
 include("models/Word2VecModel.jl")
 
@@ -22,5 +24,6 @@ include("training/cbow.jl")
 include("conec/conec.jl")
 
 include("evaluation/evaluation.jl")
+include("benchmark/benchmark.jl")
 
 end
