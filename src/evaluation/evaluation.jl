@@ -23,6 +23,7 @@ A Julia file providing evaluation utilities for Word2Vec models.
 - Base Julia
 - `LinearAlgebra` (for `norm` and `dot`)
 """
+
 using LinearAlgebra
 
 export similarity, analogy
@@ -75,7 +76,6 @@ Compute the **cosine similarity** between two words in a Word2Vec model.
 
 # Throws
 - `KeyError`: If either `w1` or `w2` is not in the model vocabulary.
-- `ArgumentError`: If either word has a zero vector embedding.
 """
 function similarity(model::Word2VecModel, w1::AbstractString, w2::AbstractString) :: Float64
     # Check words exist
@@ -91,10 +91,6 @@ function similarity(model::Word2VecModel, w1::AbstractString, w2::AbstractString
     # Get vectors
     v1 = model.embeddings[:, i1]
     v2 = model.embeddings[:, i2]
-
-    # Check for zero vectors
-    norm(v1) == 0.0 && throw(ArgumentError("Embedding for '$w1' is a zero vector, similarity undefined"))
-    norm(v2) == 0.0 && throw(ArgumentError("Embedding for '$w2' is a zero vector, similarity undefined"))
 
     # Return cosine similarity
     return cosine_similarity(v1, v2)
@@ -130,7 +126,6 @@ using vector arithmetic: `target = b - a + c`.
 
 # Throws
 - `KeyError`: If any of `a`, `b`, or `c` is not in the model vocabulary.
-- `ArgumentError`: If any of the embeddings involved in the analogy are zero vectors.
 """
 function analogy(model::Word2VecModel, a::AbstractString, b::AbstractString, c::AbstractString; topk::Int = 5)
     # Safety checks
@@ -147,10 +142,6 @@ function analogy(model::Word2VecModel, a::AbstractString, b::AbstractString, c::
     vb = model.embeddings[:, ib]
     vc = model.embeddings[:, ic]
 
-    for vec in (va, vb, vc)
-        norm(vec) == 0.0 && throw(ArgumentError("Input word vector is zero, cannot compute analogy"))
-    end
-
     target = vb - va + vc
 
     sims = Vector{Float64}(undef, length(model.vocab))
@@ -159,7 +150,7 @@ function analogy(model::Word2VecModel, a::AbstractString, b::AbstractString, c::
         sims[i] = cosine_similarity(target, model.embeddings[:, i])
     end
 
-    # Optionally exclude input words
+    # exclude inputs
     for i in (ia, ib, ic)
         sims[i] = -Inf
     end
