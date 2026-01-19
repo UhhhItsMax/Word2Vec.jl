@@ -4,13 +4,14 @@ export Word2VecModel,
        load_word2vec,
        save_word2vec,
        get_embedding,
-       train_skipgram,
        train_cbow,
-       conec_embedding,
        from_pretrained,
        load_pretrained_model,
        analogy,
-       similarity
+       similarity,
+       benchmark_cbow_for_dim,
+       benchmark_cbow_for_epochs,
+       benchmark_cbow_for_window
 
 
 include("models/Word2VecModel.jl")
@@ -23,6 +24,6 @@ include("training/cbow.jl")
 include("conec/conec.jl")
 
 include("evaluation/evaluation.jl")
-#include("benchmark/benchmark.jl")
+include("benchmarking/benchmarking.jl")
 
 end
