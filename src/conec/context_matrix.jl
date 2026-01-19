@@ -1,3 +1,5 @@
+
+
 using Serialization: serialize, deserialize
 using SparseArrays: SparseMatrixCSC, sparse
 using ..CircularBuffers: CircularBuffer, isfull
@@ -63,9 +65,24 @@ end
 
 
 """
-    save_sparse_context_matrix(path::AbstractString, scm::SparseContextMatrix)
+    save_sparse_context_matrix(path, scm)
 
-Serialize a `SparseContextMatrix` to disk.
+Serialize and save a `SparseContextMatrix` to disk.
+
+# Arguments
+- `path::AbstractString`  
+  File path where the serialized matrix will be saved.
+
+- `scm::SparseContextMatrix`  
+  The sparse context matrix to serialize and save.
+
+# Returns
+- `nothing`
+
+# Notes
+- Uses Julia's built-in `serialize` function.
+- Can later be loaded using `load_sparse_context_matrix`.
+- Overwrites the file at `path` if it already exists.
 """
 function save_sparse_context_matrix(path::AbstractString, scm::SparseContextMatrix)
     open(path, "w") do io
@@ -76,9 +93,22 @@ end
 
 
 """
-    load_sparse_context_matrix(path::AbstractString)::SparseContextMatrix
+    load_sparse_context_matrix(path) -> SparseContextMatrix
 
-Deserialize a `SparseContextMatrix` from disk.
+Load a previously saved `SparseContextMatrix` from disk.
+
+# Arguments
+- `path::AbstractString`  
+  File path of the serialized `SparseContextMatrix` (created with `save_sparse_context_matrix`).
+
+# Returns
+- `SparseContextMatrix`  
+  The deserialized sparse context matrix.
+
+# Notes
+- Uses Julia's built-in `deserialize` function.
+- Raises an error if the file does not exist or is not a valid `SparseContextMatrix`.
+- Typically used to reload global or local context matrices for ConEc or other co-occurrence-based models.
 """
 function load_sparse_context_matrix(path::AbstractString)::SparseContextMatrix
     open(path, "r") do io
@@ -88,10 +118,26 @@ end
 
 
 """
-    normalize_coocs(token_coocs::Dict{Tuple{Int, Int}, Int}, token_counts::Dict{String, Int},
-                    token_to_id::Dict{String, Int}, vocab_size::Int)::Dict{Tuple{Int, Int}, Float64}
+    normalize_coocs(token_coocs, token_counts, token_to_id) -> Dict{Tuple{Int,Int},Float64}
 
-Normalize each co-occurrence by 1/count(target).
+Normalize raw co-occurrence counts for a corpus.
+
+# Arguments
+- `token_coocs::Dict{Tuple{Int, Int}, Int}`:  
+  Dictionary mapping `(cooc_token_id, target_token_id)` → raw co-occurrence count.
+- `token_counts::Dict{String, Int}`:  
+  Total occurrence counts of each token in the corpus.
+- `token_to_id::Dict{String, Int}`:  
+  Mapping from token strings to their integer indices used in `token_coocs`.
+
+# Returns
+- `Dict{Tuple{Int,Int},Float64}`:  
+  A dictionary of the same shape as `token_coocs`, where each co-occurrence count 
+  is normalized by dividing by the total count of the target token.
+
+# Notes
+- This normalization corresponds to computing `p(cooc | target)` for each pair.
+- Typically used when building a `SparseContextMatrix` for ConEc or other co-occurrence-based embeddings.
 """
 function normalize_coocs(
     token_coocs::Dict{Tuple{Int, Int}, Int},
@@ -113,17 +159,40 @@ end
 
 
 """
-    normalize_token(token::String)
+    normalize_token(token::AbstractString) -> String
 
-Trim non-alphanumeric chars from both ends and lowercase the token.
+Normalize a token string for consistent text processing.
+
+# Arguments
+- `token::AbstractString`: The input token to normalize.
+
+# Returns
+- `String`: The normalized token, converted to lowercase and with leading 
+  and trailing non-alphanumeric characters removed.
+
+# Notes
+- Useful when building vocabularies, counting occurrences, or constructing
+  context matrices to ensure consistent token representation.
 """
 normalize_token(token::AbstractString)::String = replace(token, r"^\W+|\W+$" => "") |> lowercase
 
 
 """
-    get_occurence_counts(path::AbstractString)::Dict{String, Int}
+    get_occurence_counts(path::AbstractString) -> Dict{String, Int}
 
-Count token occurrences in a text file.
+Count the occurrences of each token in a text file.
+
+# Arguments
+- `path::AbstractString`: Path to the text file containing the corpus.
+
+# Returns
+- `Dict{String, Int}`: A dictionary mapping each normalized token to its 
+  frequency count in the file.
+
+# Notes
+- Tokens are normalized using `normalize_token` (lowercased and stripped of
+  leading/trailing non-alphanumeric characters).
+- Empty tokens are ignored.
 """
 function get_occurence_counts(path::AbstractString)::Dict{String, Int}
     token_counts = Dict{String, Int}()
@@ -140,7 +209,27 @@ function get_occurence_counts(path::AbstractString)::Dict{String, Int}
     return token_counts
 end
 
+"""
+    filter_vocabulary(token_counts::Dict{String, Int}, min_count::Int) 
+        -> (vocab::Vector{String}, token_to_id::Dict{String, Int})
 
+Filter tokens by minimum occurrence and construct a token-to-index mapping.
+
+# Arguments
+- `token_counts::Dict{String, Int}`: A dictionary mapping tokens to their 
+  frequency counts.
+- `min_count::Int`: Minimum frequency a token must have to be included 
+  in the vocabulary. Must be ≥ 1.
+
+# Returns
+- `vocab::Vector{String}`: Sorted vector of tokens that meet the minimum count.
+- `token_to_id::Dict{String, Int}`: Mapping from each token to its index 
+  in `vocab` (1-based).
+
+# Throws
+- `ArgumentError` if `min_count < 1`.
+- `ArgumentError` if the resulting vocabulary is empty.
+"""
 function filter_vocabulary(token_counts::Dict{String, Int}, min_count::Int)::Tuple{Vector{String}, Dict{String, Int}}
     min_count < 1 && throw(ArgumentError("min_count must be ≥ 1"))
 
@@ -153,9 +242,26 @@ end
 
 
 """
-    get_co_occurence_counts(path::AbstractString, token_to_id::Dict{String, Int}, window_size::Int)::Dict{Tuple{Int, Int}, Int}
+    get_co_occurence_counts(path::AbstractString, token_to_id::Dict{String, Int}, window_size::Int) 
+        -> Dict{Tuple{Int, Int}, Int}
 
-Count token co-occurrences using a sliding window.
+Count token co-occurrences in a text file using a symmetric sliding window.
+
+# Arguments
+- `path::AbstractString`: Path to the text file containing the corpus.
+- `token_to_id::Dict{String, Int}`: Mapping from tokens to integer indices.
+- `window_size::Int`: Size of the symmetric context window (≥ 1).
+
+# Returns
+- `Dict{Tuple{Int, Int}, Int}`: A dictionary where keys are `(context_id, target_id)` 
+  pairs and values are counts of how often `context_id` occurs in the window of `target_id`.
+
+# Notes
+- The buffer ignores the first few tokens until it is full.
+- Token normalization is applied (lowercase, trim non-alphanumeric characters).
+
+# Throws
+- `ArgumentError` if `window_size < 1`.
 """
 function get_co_occurence_counts(
     path::AbstractString, 
@@ -194,9 +300,20 @@ end
 
 
 """
-    dict_to_sparse(coocs::Dict{Tuple{Int, Int}, T}, n::Int) where {T}
+    dict_to_sparse(coocs::Dict{Tuple{Int, Int}, T}, n::Int) where {T} 
+        -> SparseMatrixCSC{T, Int}
 
-Convert co-occurrence counts into a sparse matrix.
+Convert a dictionary of co-occurrence counts into a sparse square matrix of size `n × n`.
+
+# Arguments
+- `coocs::Dict{Tuple{Int, Int}, T}`: Dictionary mapping `(row_index, col_index)` pairs to values.
+- `n::Int`: Size of the square matrix.
+
+# Returns
+- `SparseMatrixCSC{T, Int}`: Sparse matrix with entries from `coocs`. Entries not specified in `coocs` are zeros.
+
+# Throws
+- `ArgumentError` if any row or column index in `coocs` is greater than `n`.
 """
 function dict_to_sparse(coocs::Dict{Tuple{Int, Int}, T}, n::Int)::SparseMatrixCSC{T, Int} where {T}
     nnz = length(coocs)
