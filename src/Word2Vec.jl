@@ -12,7 +12,10 @@ export Word2VecModel,
        ConEcModel,
        SparseContextMatrix,
        build_conec_global,
-       conec_embeddings_for_file
+       conec_embeddings_for_file,
+	   analogy,
+       similarity
+
 
 include("models/Word2VecModel.jl")
 
@@ -26,5 +29,8 @@ include("training/skipgram.jl")
 include("training/cbow.jl")
 
 include("conec/conec.jl")
+
+include("evaluation/evaluation.jl")
+#include("benchmark/benchmark.jl")
 
 end
