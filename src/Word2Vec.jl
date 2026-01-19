@@ -8,7 +8,11 @@ export Word2VecModel,
        train_cbow,
        conec_embedding,
        from_pretrained,
-       load_pretrained_model
+       load_pretrained_model,
+       ConEcModel,
+       SparseContextMatrix,
+       build_conec_global,
+       conec_embeddings_for_file
 
 include("models/Word2VecModel.jl")
 
