@@ -30,6 +30,11 @@ function plot_tsne(
     markersize::Real=4,
     kwargs...
 )
+
+    if dims != 2
+        throw(ArgumentError("plot_tsne currently supports dims=2 only (got dims=$dims)."))
+    end
+
     Y, labels = tsne_embeddings(
         model;
         dims=dims,
@@ -40,10 +45,6 @@ function plot_tsne(
         max_iter=max_iter,
         perplexity=perplexity,
     )
-
-    if dims != 2
-        throw(ArgumentError("plot_tsne currently supports dims=2 only (got dims=$dims)."))
-    end
 
     p = Plots.scatter(Y[:, 1], Y[:, 2]; legend=false, markersize=markersize, kwargs...)
 
