@@ -5,6 +5,11 @@ export Word2VecModel,
        save_word2vec,
        get_embedding,
        train_cbow,
+       conec_embedding,
+       from_pretrained,
+       load_pretrained_model,
+       embedding_points,
+       tsne_embeddings,
        ConEcModel,
        conec_embeddings_for_file,
        SparseContextMatrix,
@@ -30,6 +35,11 @@ include("training/cbow.jl")
 include("conec/context_matrix.jl")
 include("conec/conec.jl")
 
+include("utils/math_utils.jl")
+include("utils/normalize.jl")
+include("utils/io_utils.jl")
+include("visualization/tsne.jl")
+include("visualization/plotting.jl")
 
 include("evaluation/evaluation.jl")
 include("benchmarking/benchmarking.jl")
