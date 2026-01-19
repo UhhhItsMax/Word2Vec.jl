@@ -30,11 +30,6 @@ function plot_tsne(
     markersize::Real=4,
     kwargs...
 )
-    if Base.find_package("Plots") === nothing
-        throw(ArgumentError("Plots.jl is not installed. Add it with `] add Plots` to use plot_tsne."))
-    end
-    @eval import Plots
-
     Y, labels = tsne_embeddings(
         model;
         dims=dims,
