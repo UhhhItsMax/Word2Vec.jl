@@ -7,6 +7,12 @@ export Word2VecModel,
        train_cbow,
        from_pretrained,
        load_pretrained_model,
+       ConEcModel,
+       SparseContextMatrix,
+       build_conec_global,
+       conec_embeddings_for_file,
+	   analogy,
+       similarity
        analogy,
        similarity,
        benchmark_cbow_for_dim,
@@ -19,6 +25,8 @@ include("models/Word2VecModel.jl")
 
 include("loaders/load_word2vec.jl")
 include("savers/save_word2vec.jl")
+
+include("utils/circular_buffer.jl")
 
 include("training/cbow.jl")
 

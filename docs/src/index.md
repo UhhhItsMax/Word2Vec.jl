@@ -10,5 +10,9 @@ Documentation for [Word2Vec](https://github.com/UhhhItsMax/Word2Vec.jl).
 ```
 
 ```@autodocs
-Modules = [Word2Vec]
+Modules = [
+	Word2Vec,
+	Word2Vec.CircularBuffers,
+	Word2Vec.sparse_context_matrix,
+]
 ```
