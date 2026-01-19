@@ -9,10 +9,10 @@ export Word2VecModel,
        load_pretrained_model,
        ConEcModel,
        SparseContextMatrix,
+       load_sparse_context_matrix,
+       save_sparse_context_matrix,
        build_conec_global,
        conec_embeddings_for_file,
-	   analogy,
-       similarity
        analogy,
        similarity,
        benchmark_cbow_for_dim,
@@ -31,6 +31,7 @@ include("utils/circular_buffer.jl")
 include("training/cbow.jl")
 
 include("conec/conec.jl")
+include("conec/context_matrix.jl")
 
 include("evaluation/evaluation.jl")
 include("benchmarking/benchmarking.jl")
