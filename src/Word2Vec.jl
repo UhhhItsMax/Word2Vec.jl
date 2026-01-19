@@ -11,7 +11,8 @@ export Word2VecModel,
        similarity,
        benchmark_cbow_for_dim,
        benchmark_cbow_for_epochs,
-       benchmark_cbow_for_window
+       benchmark_cbow_for_window,
+       benchmark_model_quality
 
 
 include("models/Word2VecModel.jl")
