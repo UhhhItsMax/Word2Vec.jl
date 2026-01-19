@@ -7,28 +7,28 @@ using Word2Vec
         txt_path_1 = joinpath(@__DIR__, "data", "small_model.txt")
         txt_path_2 = joinpath(@__DIR__, "data", "word2vec.txt")
 
-        vocab, emb = Word2Vec.load_word2vec(txt_path_1)
-        @test length(vocab) == 3
-        @test vocab[1] == "king"
-        @test emb[:, 1] == [0.1, 0.2, 0.3, 0.4, 0.5]
-        @test vocab[2] == "queen"
-        @test emb[:, 2] == [0.2, 0.1, 0.4, 0.3, 0.0]
-        @test vocab[3] == "man"
-        @test emb[:, 3] == [0.0, 0.1, 0.0, 0.1, 0.0]
+        model1 = Word2Vec.load_word2vec(txt_path_1)
+        @test length(model1.vocab) == 3
+        @test model1.vocab[1] == "king"
+        @test model1.embeddings[:, 1] == [0.1, 0.2, 0.3, 0.4, 0.5]
+        @test model1.vocab[2] == "queen"
+        @test model1.embeddings[:, 2] == [0.2, 0.1, 0.4, 0.3, 0.0]
+        @test model1.vocab[3] == "man"
+        @test model1.embeddings[:, 3] == [0.0, 0.1, 0.0, 0.1, 0.0]
 
-        vocab, emb = Word2Vec.load_word2vec(txt_path_2)
-        @test length(vocab) == 12
-        @test vocab[1] == "system"
-        @test emb[1, 1] == -0.00053622725
+        model2 = Word2Vec.load_word2vec(txt_path_2)
+        @test length(model2.vocab) == 12
+        @test model2.vocab[1] == "system"
+        @test model2.embeddings[1, 1] ≈ -0.00053622725  # Use ≈ for floating point
     end
 
     @testset "normal bin model" begin
-        bin_path   = joinpath(@__DIR__, "data", "word2vec.bin")
+        bin_path = joinpath(@__DIR__, "data", "word2vec.bin")
 
-        vocab, emb = Word2Vec.load_binary_embeddings(bin_path)
-        @test length(vocab) == 12
-        @test vocab[1] == "system"
-        @test emb[1, 1] == Float32(-0.00053622725)
+        model_bin = Word2Vec.load_word2vec(bin_path)
+        @test length(model_bin.vocab) == 12
+        @test model_bin.vocab[1] == "system"
+        @test model_bin.embeddings[1, 1] ≈ Float32(-0.00053622725)  # ≈ for floats
     end
 
 end
@@ -108,7 +108,7 @@ end
         txt_path_1 = joinpath(@__DIR__, "data", "small_model.txt")
         txt_path_2 = joinpath(@__DIR__, "data", "word2vec.txt")
     
-        vocab, emb = Word2Vec.load_word2vec(txt_path_1)
+        vocab, emb = Word2Vec.load_text_embeddings(txt_path_1)
         @test length(vocab) == 3
         @test vocab[1] == "king"
         @test emb[:, 1] == [0.1, 0.2, 0.3, 0.4, 0.5]
@@ -117,7 +117,7 @@ end
         @test vocab[3] == "man"
         @test emb[:, 3] == [0.0, 0.1, 0.0, 0.1, 0.0]
 
-        vocab, emb = Word2Vec.load_word2vec(txt_path_2)
+        vocab, emb = Word2Vec.load_text_embeddings(txt_path_2)
         @test length(vocab) == 12
         @test vocab[1] == "system"
         @test emb[1,1] == -0.00053622725

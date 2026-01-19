@@ -19,7 +19,7 @@ Plot benchmarking results for CBOW training time.
 # Behavior
 - Converts `results` to two sorted vectors `(xs, ys)` where `xs` are the sorted keys and `ys` are the corresponding times in milliseconds.
 - Plots `ys` versus `xs` using a line with circular markers.
-- Labels the x-axis as `x_axis`, y-axis as `"Time (ms)"`, and adds a title `"CBOW benchmark: time vs $x_axis"`.
+- Labels the x-axis as `x_axis`, y-axis as `"Time (ms)"`, and adds a title `"CBOW benchmark: time vs x_axis"`.
 
 # Returns
 - A `Plots.Plot` object.
