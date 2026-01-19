@@ -9,7 +9,11 @@ export Word2VecModel,
        conec_embedding,
        from_pretrained,
        load_pretrained_model,
-       analogy,
+       ConEcModel,
+       SparseContextMatrix,
+       build_conec_global,
+       conec_embeddings_for_file,
+	   analogy,
        similarity
 
 
@@ -17,6 +21,8 @@ include("models/Word2VecModel.jl")
 
 include("loaders/load_word2vec.jl")
 include("savers/save_word2vec.jl")
+
+include("utils/circular_buffer.jl")
 
 include("training/cbow.jl")
 
