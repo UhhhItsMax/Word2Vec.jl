@@ -149,11 +149,6 @@ function conec_embeddings_for_file(
         has_global = nnz(c_global) > 0
         a_eff = has_global ? a : 0.0
 
-        # if pure-global (a=1.0) but no global context, fall back to local
-        if a_eff == 1.0 && !has_global
-            a_eff = 0.0
-        end
-
         # combined context vector: (V × 1)
         c = a_eff .* c_global .+ (1.0 - a_eff) .* c_local
 
