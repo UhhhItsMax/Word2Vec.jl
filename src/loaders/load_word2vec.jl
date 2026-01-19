@@ -19,31 +19,34 @@ with automatic format detection.
 export load_word2vec
 
 """
-    load_word2vec(path::String) :: Tuple{Vector{String}, Matrix{Float64}}
+    load_word2vec(path::String) -> Word2VecModel
 
-Loads Word2Vec embeddings from a file, automatically detecting whether the file
-is in text or binary format.
+Load a Word2Vec embedding model from a file, automatically detecting
+whether the file is in **text** or **binary** format.
 
 # Arguments
-- `path::String`: Path to the Word2Vec embedding file.
+- `path::String` — Path to the embedding file.
 
 # Returns
-- `Tuple{Vector{String}, Matrix{Float64}}`: Vector containing the words, Matrix which contains their respective embedding vector.
+- `Word2VecModel` — A struct containing:
+    - `vocab::Vector{String}` — Words in the embedding.
+    - `embeddings::Matrix{Float64}` — Corresponding embedding vectors (columns).
 
 # Notes
-- Uses `detect_embedding_format` to determine file format.
-- Text files: `word float float ...` (skips numeric header lines).
-- Binary files: Gensim hybrid format (text header `"vocab_size dim"`, ASCII words, binary Float32 vectors).
-- Binary vectors are converted to `Float64` for consistency.
-- Large models require substantial RAM.
+- Uses `detect_embedding_format` to determine whether the file is text or binary.
+- Text format: each line is `word float float ...` (header lines with numeric info are ignored).
+- Binary format: Gensim-style hybrid format (ASCII words + binary Float32 vectors), converted to `Float64`.
+- Large models may require substantial RAM.
+- Automatically wraps the loaded embeddings in a `Word2VecModel`.
 """
-function load_word2vec(path::String)::Tuple{Vector{String}, Matrix{Float64}}
+function load_word2vec(path::String)::Word2VecModel
     fmt = detect_embedding_format(path)
     if fmt == :text
-        return load_text_embeddings(path)
+        vocab, embeddings = load_text_embeddings(path)
     else
-        return load_binary_embeddings(path)
+        vocab, embeddings = load_binary_embeddings(path)
     end
+    return Word2VecModel(vocab, embeddings)
 end
 
 """
