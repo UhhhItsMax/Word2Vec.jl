@@ -98,4 +98,54 @@ end
         rm(global_path)
         rm(local_path)
     end
+
+    @testset "ConEc: a=1.0 fallback to local context" begin
+        global_path, local_path = create_test_files()
+
+        try
+            # Train w2v ONLY on global corpus
+            tokens = split(GLOBAL_CORPUS_TEXT)
+            w2v = train_cbow(
+                tokens;
+                dim = 6,
+                window = 1,
+                epochs = 5,
+                lr = 0.2,
+                min_count = 1,
+                seed = 123,
+                verbose = false,
+            )
+
+            # Force pure-global weighting
+            conec_model = build_conec_global(
+                w2v,
+                global_path;
+                window_size = 1,
+                min_count = 1,
+                a = 1.0,
+            )
+
+            embs = conec_embeddings_for_file(
+                conec_model,
+                local_path;
+                window_size = 1,
+                min_count = 1,
+            )
+
+            # "hill" and "chases" do not occur in the global corpus
+            for word in ["hill", "chases"]
+                @test haskey(embs, word)
+
+                v = embs[word]
+                @test length(v) == 6
+                @test norm(v) > 0.0
+                @test all(isfinite, v)
+            end
+
+        finally
+            rm(global_path)
+            rm(local_path)
+        end
+    end
+
 end
