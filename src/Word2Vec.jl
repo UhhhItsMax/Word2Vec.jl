@@ -9,7 +9,7 @@ export Word2VecModel,
        from_pretrained,
        load_pretrained_model,
        embedding_points,
-       tsne_embeddings
+       tsne_embeddings,
        ConEcModel,
        conec_embeddings_for_file,
        SparseContextMatrix,
