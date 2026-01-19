@@ -11,13 +11,15 @@ export Word2VecModel,
        load_pretrained_model,
        embedding_points,
        tsne_embeddings
+       analogy,
+       similarity
+
 
 include("models/Word2VecModel.jl")
 
 include("loaders/load_word2vec.jl")
 include("savers/save_word2vec.jl")
 
-include("training/skipgram.jl")
 include("training/cbow.jl")
 
 include("conec/conec.jl")
@@ -27,5 +29,7 @@ include("utils/normalize.jl")
 include("utils/io_utils.jl")
 include("visualization/tsne.jl")
 include("visualization/plotting.jl")
+include("evaluation/evaluation.jl")
+#include("benchmark/benchmark.jl")
 
 end
