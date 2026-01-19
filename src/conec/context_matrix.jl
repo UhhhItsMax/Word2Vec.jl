@@ -2,7 +2,6 @@
 
 using Serialization: serialize, deserialize
 using SparseArrays: SparseMatrixCSC, sparse
-using ..CircularBuffers: CircularBuffer, isfull
 
 export SparseContextMatrix, save_sparse_context_matrix, load_sparse_context_matrix
 
