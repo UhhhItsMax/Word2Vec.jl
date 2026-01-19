@@ -1,20 +1,20 @@
 using Test
-using Word2Vec.CircularBuffers
+using Word2Vec
 
 @testset "CircularBuffer" begin
     @testset "basic push/pop behavior" begin
-        buf = CircularBuffer{Int}(3)
+        buf = Word2Vec.CircularBuffer{Int}(3)
 
         @test length(buf) == 0
-        @test isempty(buf)
-        @test !isfull(buf)
+        @test Word2Vec.isempty(buf)
+        @test !Word2Vec.isfull(buf)
 
         push!(buf, 1)
         push!(buf, 2)
         push!(buf, 3)
 
         @test length(buf) == 3
-        @test isfull(buf)
+        @test Word2Vec.isfull(buf)
         @test collect(buf) == [1, 2, 3]
 
         push!(buf, 4)
@@ -27,7 +27,7 @@ using Word2Vec.CircularBuffers
     end
 
     @testset "wraparound indexing and overwrite order" begin
-        buf = CircularBuffer{Int}(2)
+        buf = Word2Vec.CircularBuffer{Int}(2)
 
         push!(buf, 10)
         push!(buf, 20)
@@ -42,15 +42,15 @@ using Word2Vec.CircularBuffers
     end
 
     @testset "empty and bounds errors" begin
-        buf = CircularBuffer{Int}(1)
+        buf = Word2Vec.CircularBuffer{Int}(1)
 
         @test_throws BoundsError buf[1]
 
         push!(buf, 7)
         @test buf[1] == 7
 
-        buf = CircularBuffer{Int}(1)
-        @test isempty(buf)
+        buf = Word2Vec.CircularBuffer{Int}(1)
+        @test Word2Vec.isempty(buf)
         @test length(buf) == 0
     end
 end

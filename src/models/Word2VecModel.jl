@@ -1,4 +1,4 @@
-export Word2VecModel, from_pretrained_model, get_embedding
+export Word2VecModel, get_embedding
 
 using LinearAlgebra: norm, dot
 
@@ -61,9 +61,6 @@ get_embedding_norm(model::Word2VecModel, word::String) = model.vector_norms[mode
 Constructs a Word2VecModel from (word => vector) mappings.
 """
 function from_dict_data(embeddings_map::Dict{String,Vector{T}}) where T<:AbstractFloat
-
-	#TODO: add tests to test_word2vec_model.jl
-
 	words = collect(keys(embeddings_map))
 	dim = length(first(values(embeddings_map)))
 
@@ -75,31 +72,3 @@ function from_dict_data(embeddings_map::Dict{String,Vector{T}}) where T<:Abstrac
 
 	return Word2VecModel(words, M)
 end
-
-
-"""
-	load_pretrained_model(path::String; file_type::Symbol = :auto) -> Word2VecModel
-
-Loads embeddings from disk and returns a dense Word2Vec model.
-
-# Arguments
-- `path`: Filesystem path to the embeddings.
-- `file_type`: `:auto` to detect, or explicitly `:binary` / `:text`.
-"""
-function load_pretrained_model(path::String; fmt::Symbol = :auto)
-
-	#TODO: add tests for this to test_word2vec_model.jl. use the existing data sources in test/data. specifically use word2vec.bin and word2vec.txt
-
-	if fmt !== :binary && fmt !== :text && fmt !== :auto
-		throw(ArgumentError("file_type must be :auto, :binary or :text"))
-	end
-
-	if fmt === :auto
-		 fmt = detect_embedding_format(path)
-	end
-
-	vocab, embeddings = (fmt === :binary) ? load_binary_embeddings(path) : load_text_embeddings(path)
-
-	return Word2VecModel(vocab, embeddings)
-end
-

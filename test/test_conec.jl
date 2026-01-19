@@ -42,8 +42,8 @@ end
         @test length(w2v.vocab) >= 10  # at least these words: the,quick,brown,etc.
         
         # 2. Build ConEc model with global context
-        conec_model = build_conec_global(w2v, global_path; 
-                                       window_size=2, min_count=1, a=0.6)
+        conec_model = ConEcModel(w2v, global_path; 
+                                    window_size=2, min_count=1, a=0.6)
         @test conec_model isa ConEcModel
         @test conec_model.w2v === w2v
         @test conec_model.a ≈ 0.6
@@ -68,7 +68,7 @@ end
         w2v = train_cbow(tokens; dim=5, window=1, epochs=5, lr=0.2, 
                         min_count=1, seed=42, verbose=false)
         
-        conec_model = build_conec_global(w2v, global_path; 
+        conec_model = ConEcModel(w2v, global_path; 
                                        window_size=1, min_count=1, a=0.5)
         
         # 4. Compute ConEc embeddings for local document
