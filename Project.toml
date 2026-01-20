@@ -1,6 +1,6 @@
 name = "Word2Vec"
 uuid = "646652a7-79fc-4b5e-901d-cd688489453a"
-authors = ["Maximilian Hans hans.maximilian@icloud.com", "Jan-Erik Hein janerik.hein@gmail.com", "Paul Nelde paul.nelde@fu-berlin.de", "Mika Paul Merten mika.merten@googlemail.com"]
+authors = ["Maximilian Hans hans.maximilian@icloud.com", "Jan-Erik Hein janerik.hein@gmail.com", "Paul Nelde paul.nelde@fu-berlin.de", "Mika Paul Merten merten@campus.tu-berlin.de"]
 version = "1.0.0-DEV"
 
 [deps]
