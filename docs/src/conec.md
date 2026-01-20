@@ -44,7 +44,7 @@ embs = conec_embeddings_for_file(cm, "local_corpus.txt"; window_size=5)
 
 # Access embedding for a word
 vec = embs["word1"]  # Vector{Float64} corresponding to "word1"
-````
+```
 
 ## Notes
 
