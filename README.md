@@ -6,6 +6,7 @@ A lightweight Julia implementation of **Word2Vec (CBOW)** with utilities for eva
 
 **Contributors:**
 - Paul Mathias Nelde ([@designationna](https://github.com/designationna)) — paulnelde@gmail.com
+- Mika Paul Merten ([@42Strike](https://github.com/42Strike)) - mika.merten@googlemail.com
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://UhhhItsMax.github.io/Word2Vec.jl/stable/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://UhhhItsMax.github.io/Word2Vec.jl/dev/)
