@@ -5,7 +5,7 @@ A lightweight Julia implementation of **Word2Vec (CBOW)** with utilities for eva
 **Creator:** Maximilian Hans ([@UhhhItsMax](https://github.com/UhhhItsMax)) — hans.maximilian@icloud.com
 
 **Contributors:**
-- Paul Mathias Nelde ([@designationna](https://github.com/designationna)) — paulnelde@gmail.com
+- Paul Mathias Nelde ([@designationna](https://github.com/designationna)) — paul.nelde@fu-berlin.de
 - Mika Paul Merten ([@42Strike](https://github.com/42Strike)) - merten@campus.tu-berlin.de
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://UhhhItsMax.github.io/Word2Vec.jl/stable/)
@@ -120,7 +120,7 @@ Pkg.test("Word2Vec")
 
 ### 6) More Information
 
-For more information, visit our ([Pages](https://uhhhitsmax.github.io/Word2Vec.jl/stable/))
+For more information, visit our [Documentation](https://uhhhitsmax.github.io/Word2Vec.jl/stable/)
 
 
 ---

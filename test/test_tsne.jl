@@ -35,4 +35,17 @@ end
     @test size(Y) == (3, 2)
     @test all(isfinite, Y)
 
+
+@testset "Visualization - tsne_embeddings empty input" begin
+    vocab = ["a", "b", "c"]
+    E = randn(5, 3)
+    m = Word2VecModel(vocab, E)
+
+    # Provide a word list with no matches -> embedding_points returns empty X
+    Y, labels = tsne_embeddings(m; words=["doesnotexist"], dims=2, max_iter=10, perplexity=2, seed=1)
+
+    @test isempty(labels)           # labels should be empty
+    @test size(Y) == (0, 2)         # Y should have 0 rows and dims columns
+end
+
 end
