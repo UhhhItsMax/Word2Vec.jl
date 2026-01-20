@@ -5,7 +5,8 @@ DocMeta.setdocmeta!(Word2Vec, :DocTestSetup, :(using Word2Vec); recursive=true)
 
 makedocs(
     modules = [Word2Vec],
-    authors = "Maximilian Hans <hans.maximilian@icloud.com>",
+    checkdocs = :exports,
+    authors = "Maximilian Hans <hans.maximilian@icloud.com>, Paul Mathias Nelde <paulnelde@gmail.com>, Mika Paul Merten <merten@campus.tu-berlin.de>",
     sitename = "Word2Vec.jl",
     format = Documenter.HTML(
         canonical = "https://uhhhitsmax.github.io/Word2Vec.jl/",
@@ -13,7 +14,13 @@ makedocs(
     ),
     pages = [
         "Home" => "index.md",
-        "Getting Started" => "getting_started.md",
+        "Word2VecModel" => "model.md",
+        "Model I/O" => "io.md",
+        "CBOW Training" => "cbow.md",
+        "Evaluation and Benchmarking for Word2VecModel" => "w2v_bench_ev.md",
+        "Visualization" => "visualization.md",
+        "ConEc Embeddings" => "conec.md",
+        "API Reference" => "api.md"
     ],
 )
 

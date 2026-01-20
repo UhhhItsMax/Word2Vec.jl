@@ -4,6 +4,10 @@ A lightweight Julia implementation of **Word2Vec (CBOW)** with utilities for eva
 
 **Creator:** Maximilian Hans ([@UhhhItsMax](https://github.com/UhhhItsMax)) — hans.maximilian@icloud.com
 
+**Contributors:**
+- Paul Mathias Nelde ([@designationna](https://github.com/designationna)) — paulnelde@gmail.com
+- Mika Paul Merten ([@42Strike](https://github.com/42Strike)) - merten@campus.tu-berlin.de
+
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://UhhhItsMax.github.io/Word2Vec.jl/stable/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://UhhhItsMax.github.io/Word2Vec.jl/dev/)
 [![Build Status](https://github.com/UhhhItsMax/Word2Vec.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/UhhhItsMax/Word2Vec.jl/actions/workflows/CI.yml?query=branch%3Amain)
@@ -18,6 +22,7 @@ This package is currently installed directly from GitHub:
 ```julia
 using Pkg
 Pkg.add(url="https://github.com/UhhhItsMax/Word2Vec.jl")
+using Word2Vec
 ```
 
 For development:
@@ -25,41 +30,54 @@ For development:
 ```julia
 using Pkg
 Pkg.develop(url="https://github.com/UhhhItsMax/Word2Vec.jl")
+using Word2Vec
 ```
 
 ---
 
 ## Getting Started
 
-### 1) Train a CBOW model on a text corpus
+### 1) Loading and saving Word2Vec models
 
-Assumption: your corpus is a `.txt` where **each line is treated as a sentence**.
-We provide helpers that clean lines (lowercasing, punctuation stripping, ignoring dashed separators).
+Word2Vec.jl supports loading and saving Word2Vec-compatible text and binary models.
+
+#### Loading a model
 
 ```julia
-using Word2Vec
+model = load_word2vec("vectors.txt")
+model = load_word2vec("vectors.bin")
+```
+- Text format: word val1 val2 ...
+- Binary format: Gensim-style hybrid format (Float32 vectors)
+- Binary vectors are automatically converted to Float64
 
-# Read as sentences (Vector{Vector{String}}), preserving sentence boundaries
+#### Saving a model
+
+```julia
+save_word2vec(model, "model.txt"; format = :text)
+save_word2vec(model, "model.bin"; format = :binary)
+```
+
+- Supported Formats:
+    - :text — human-readable, compatible with Gensim
+    - :binary — compact binary Word2Vec format
+
+### 2) Train a CBOW model on a text corpus
+
+Assumption: your corpus is a `.txt` where **each line is treated as a sentence**.
+
+```julia
 sentences = read_corpus_sentences("corpus.txt")
 
-# Train CBOW (example hyperparameters)
-model = train_cbow(
-    sentences;
-    dim=100,
-    window=5,
-    epochs=5,
-    min_count=2,
-)
+model = train_cbow(sentences)
 ```
 
 > If you want to ignore sentence boundaries (flat token stream), use:
 > `tokens = read_corpus_tokens("corpus.txt")`
 
-### 2) Query embeddings
+### 3) Query embeddings and model evaluation
 
 ```julia
-using Word2Vec
-
 # single word embedding vector
 v = get_embedding(model, "virtue")
 
@@ -67,49 +85,16 @@ v = get_embedding(model, "virtue")
 similarity(model, "virtue", "reason")
 
 # analogies (classic word2vec demo)
-analogy(model, "king", "man", "woman"; topk=10)
+analogy(model, "king", "man", "woman")
 ```
 
 ---
 
-## Visualize embeddings with t-SNE
-
-### Plot a subset of words from a file
-
-If you have a word list (one word per line, `#` comments allowed):
-
-```julia
-using Word2Vec
-
-words = read_wordlist("words_big.txt")
-
-p = plot_tsne(
-    model;
-    words=words,
-    normalize=true,
-    perplexity=30,
-    max_iter=1000,
-    annotate=false,
-)
-
-# Save (Plots.jl API)
-using Plots
-savefig(p, "tsne.png")
-```
-
-Notes:
-- `plot_tsne` currently supports `dims=2` (scatter plot).
-- If you set `annotate=true`, labels are drawn next to points (best for small lists).
-
----
-
-## ConEc embeddings (global + local context)
+### 4) ConEc embeddings (global + local context)
 
 ConEc creates embeddings from a mixture of a **global context matrix** and a **local document context**.
 
 ```julia
-using Word2Vec
-
 # Assume you already have a trained Word2Vec model `model`
 # Build ConEc using a global corpus
 cm = ConEcModel(model, "corpus.txt"; window_size=5, min_count=2, a=0.6)
@@ -123,51 +108,20 @@ embs["virtue"]
 
 ---
 
-## REPL / Terminal one-liners
-
-### Train + t-SNE plot + save image (from terminal)
-corpus.txt and words_big.txt aren't provided here, general structure is:
-for corpus.txt one sentence per line
-for words_big.txt one word per line
-
-```bash
-julia --project -e '
-using Word2Vec, Plots
-
-sentences = read_corpus_sentences("corpus.txt")
-model = train_cbow(sentences; dim=100, window=5, epochs=5, min_count=2)
-
-words = read_wordlist("words_big.txt")
-p = plot_tsne(model; words=words, normalize=true, perplexity=30, max_iter=1000)
-
-savefig(p, "tsne.png")
-println("Saved: tsne.png")
-'
-```
-
----
-
-## Data formats
-
-### `corpus.txt`
-- one sentence per line
-- dashed separators like `---` / `------` are ignored by default
-- punctuation is stripped by default (non-alphanumeric → spaces)
-
-### `words_big.txt`
-- one word per line
-- empty lines are ignored
-- lines starting with `#` are ignored (comments)
-
----
-
-## Development
+### 5) Tests
 
 Run tests (with coverage):
 
-```bash
-julia --project -e 'using Pkg; Pkg.resolve(); Pkg.instantiate(); Pkg.test(coverage=true)'
+```julia
+Pkg.test("Word2Vec")
 ```
+
+---
+
+### 6) More Information
+
+For more information, visit our ([Pages](https://uhhhitsmax.github.io/Word2Vec.jl/stable/))
+
 
 ---
 
