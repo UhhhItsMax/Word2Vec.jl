@@ -14,9 +14,12 @@ makedocs(
     ),
     pages = [
         "Home" => "index.md",
+        "Word2VecModel" => "model.md",
+        "Model I/O" => "io.md",
         "CBOW Training" => "cbow.md",
-        "ConEc Embeddings" => "conec.md",
+        "Evaluation and Benchmarking for Word2VecModel" => "w2v_bench_ev.md",
         "Visualization" => "visualization.md",
+        "ConEc Embeddings" => "conec.md",
         "API Reference" => "api.md"
     ],
 )

@@ -1,13 +1,16 @@
 module Word2Vec
 
 export Word2VecModel,
+       get_embedding,
+       get_embedding_norm,
+       from_dict_data,
        load_word2vec,
        save_word2vec,
-       get_embedding,
        train_cbow,
+       read_corpus_sentences,
+       read_corpus_tokens,
+       read_wordlist,
        conec_embedding,
-       from_pretrained,
-       load_pretrained_model,
        embedding_points,
        tsne_embeddings,
        ConEcModel,
@@ -20,6 +23,8 @@ export Word2VecModel,
        benchmark_cbow_for_dim,
        benchmark_cbow_for_epochs,
        benchmark_cbow_for_window,
+       SimilarityTest, 
+       AnalogyTest,
        benchmark_model_quality
 
 

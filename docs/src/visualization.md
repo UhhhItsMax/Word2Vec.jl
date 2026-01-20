@@ -1,23 +1,37 @@
 # Visualization
 
-Visualize high-dimensional Word2Vec embeddings using **t-SNE** dimensionality reduction. `plot_tsne` produces interactive 2D scatter plots via [Plots.jl](https://docs.juliaplots.org/latest/), with optional word labels.
+Visualize high-dimensional Word2Vec embeddings in 2D using **t-SNE** with [Plots.jl](https://docs.juliaplots.org/latest/).  
+`plot_tsne` supports optional word subsetting for large vocabularies and annotation of labels.
 
-Supports subsetting to specific words (e.g., from `words_big.txt`) for clearer plots on large vocabs.
-
-## Quick Example
+## Example
 
 ```julia
-# After training CBOW model
-words = read_wordlist("words_big.txt")  # one word per line
-p = plot_tsne(model; words=words, normalize=true, annotate=true)
+using Plots
+words = read_wordlist("words_big.txt")
+
+p = plot_tsne(
+    model;
+    words=words,
+    normalize=true,
+    perplexity=30,
+    max_iter=1000,
+    annotate=false,
+)
+# display plot
+display(p)
+
+# Save plot
+savefig(p, "tsne_plot.png")
 ```
 
-## Parameters Explained
+## Notes
 
-| Parameter | Purpose | Recommended |
-|-----------|---------|-------------|
-| `perplexity=30` | t-SNE balance (local/global structure) | 5-50 |
-| `max_iter=1000` | Convergence iterations | 500-5000 |
-| `normalize=true` | L2-normalize embeddings first | Improves separation |
-| `annotate=true` | Show word labels | Small word lists only |
-| `reduce_dims=50` | PCA pre-reduction (if `dim > 100`) | Speeds up large models |
+- dims=2 is currently required (scatter plot in 2D only).
+- normalize=true L2-normalizes embeddings, improving separation in the plot.
+- annotate=true shows word labels; recommended for small word subsets.
+- reduce_dims performs PCA pre-reduction if embedding dimension is high (speeds up t-SNE).
+- perplexity controls the balance between local vs global structure (typical range: 5–50).
+- max_iter sets the number of t-SNE iterations (default 1000; increase for larger corpora).
+- markersize and other keyword arguments are forwarded to Plots.scatter for customization.
+- Works best with a limited number of words for readability; for large vocabularies, use a filtered subset.
+

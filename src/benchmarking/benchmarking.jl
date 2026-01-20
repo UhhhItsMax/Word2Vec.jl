@@ -2,7 +2,7 @@
 using BenchmarkTools
 using Plots
 
-export benchmark_cbow_for_dim, benchmark_cbow_for_epochs, benchmark_cbow_for_window, benchmark_model_quality
+export benchmark_cbow_for_dim, benchmark_cbow_for_epochs, benchmark_cbow_for_window, benchmark_model_quality, SimilarityTest, AnalogyTest
 
 
 """
