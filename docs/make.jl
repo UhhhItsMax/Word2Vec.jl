@@ -18,8 +18,9 @@ makedocs(
         "Model I/O" => "io.md",
         "CBOW Training" => "cbow.md",
         "Evaluation and Benchmarking for Word2VecModel" => "w2v_bench_ev.md",
-        "Visualization" => "visualization.md",
         "ConEc Embeddings" => "conec.md",
+        "Benchmarking for ConEc Embeddings" => "conec_bench_ev.md",
+        "Visualization" => "visualization.md",
         "API Reference" => "api.md"
     ],
 )
