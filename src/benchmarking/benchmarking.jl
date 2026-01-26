@@ -2,19 +2,20 @@
 using BenchmarkTools
 using Plots
 
-export benchmark_cbow_for_dim, benchmark_cbow_for_epochs, benchmark_cbow_for_window, benchmark_model_quality, SimilarityTest, AnalogyTest
+export benchmark_cbow_for_dim, benchmark_cbow_for_epochs, benchmark_cbow_for_window, benchmark_model_quality, SimilarityTest, AnalogyTest, benchmark_conec_for_window, benchmark_conec_for_local_corpus_size, benchmark_conec_for_dim
 
 
 """
-    _plot_benchmark(results::Dict{<:Integer, T}, x_axis::AbstractString) where {T}
+    _plot_benchmark(results::Dict{<:Integer, T}, x_axis::AbstractString; mode::Symbol=:cbow) where {T}
 
-Plot benchmarking results for CBOW training time.
+Plot benchmarking results for CBOW or ConEc training time.
 
 # Arguments
 - `results::Dict{<:Integer, T}`: Mapping from an integer parameter (e.g., embedding dimension, window size, or number of epochs) to either:
     - a numeric value representing the time in milliseconds, or
     - a `BenchmarkTools.Trial` object, in which case the minimum runtime is extracted.
 - `x_axis::AbstractString`: Label for the x-axis (e.g., `"dimension"`, `"window size"`, `"epochs"`).
+- `mode::Symbol=:cbow`: Determines plot title and y-label. Use `:cbow` for CBOW benchmarks, `:conec` for ConEc benchmarks.
 
 # Behavior
 - Converts `results` to two sorted vectors `(xs, ys)` where `xs` are the sorted keys and `ys` are the corresponding times in milliseconds.
@@ -24,7 +25,7 @@ Plot benchmarking results for CBOW training time.
 # Returns
 - A `Plots.Plot` object.
 """
-function _plot_benchmark(results::Dict{<:Integer, T}, x_axis::AbstractString) where {T}
+function _plot_benchmark(results::Dict{<:Integer, T}, x_axis::AbstractString; mode::Symbol = :cbow) where {T}
     xs = sort(collect(keys(results)))
 
     ys = map(xs) do x
@@ -32,12 +33,16 @@ function _plot_benchmark(results::Dict{<:Integer, T}, x_axis::AbstractString) wh
         v isa BenchmarkTools.Trial ? minimum(v).time / 1e6 : v
     end
 
+    title_text = mode == :cbow ? "CBOW benchmark: time vs $x_axis" :
+                 mode == :conec ? "ConEc benchmark: time vs $x_axis" :
+                 "Benchmark: time vs $x_axis"
+
     plot(
         xs,
         ys;
         xlabel = x_axis,
         ylabel = "Time (ms)",
-        title = "CBOW benchmark: time vs $x_axis",
+        title = title_text,
         marker = :circle,
         lw = 2,
         legend = false,
@@ -362,4 +367,82 @@ function benchmark_model_quality(
             results = ana_results,
         ),
     )
+end
+
+
+
+
+"""
+    benchmark_conec_for_window(model::ConEcModel, local_path::String, windows::AbstractVector{<:Int}=[1,2,5])
+
+Benchmark ConEc embedding computation across multiple context window sizes.
+
+# Arguments
+- `model::ConEcModel`: ConEc model containing a pretrained CBOW model and global context.
+- `local_path::String`: Path to local corpus file.
+- `windows::Vector{Int}=[1,2,5]`: Context window sizes to test.
+
+# Returns
+- `Dict{Int, BenchmarkTools.Trial}`: Mapping `window size => benchmark trial`.
+- Also displays a plot of computation time vs window size.
+"""
+function benchmark_conec_for_window(model::ConEcModel, local_path::String, windows::AbstractVector{<:Int}=[1,2,5])
+    results = Dict{Int, BenchmarkTools.Trial}()
+
+    for w in windows
+        @info "Benchmarking ConEc (window = $w)"
+        results[w] = @benchmark conec_embeddings_for_file($model, $local_path; window_size=$w)
+    end
+
+    display(_plot_benchmark(results, "window size"; mode=:conec))
+    return results
+end
+
+"""
+    benchmark_conec_for_local_corpus_size(model::ConEcModel, local_paths::Vector{String})
+
+Benchmark ConEc embedding computation across multiple local corpora of varying sizes.
+
+# Arguments
+- `model::ConEcModel`: ConEc model with pretrained CBOW and global context.
+- `local_paths::Vector{String}`: Paths to local corpus files to test.
+
+# Returns
+- `Dict{String, BenchmarkTools.Trial}`: Mapping `local corpus file => benchmark trial`.
+"""
+function benchmark_conec_for_local_corpus_size(model::ConEcModel, local_paths::Vector{String})
+    results = Dict{String, BenchmarkTools.Trial}()
+
+    for path in local_paths
+        @info "Benchmarking ConEc on corpus: $path"
+        results[path] = @benchmark conec_embeddings_for_file($model, $path)
+    end
+
+    return results
+end
+
+"""
+    benchmark_conec_for_dim(models::Vector{ConEcModel}, local_path::String, dims::Vector{Int}=[50,100,200])
+
+Benchmark ConEc embedding computation for CBOW models with different embedding dimensions.
+
+# Arguments
+- `models::Vector{ConEcModel}`: List of ConEc models trained with different CBOW dimensions.
+- `local_path::String`: Path to local corpus file.
+- `dims::Vector{Int}=[50,100,200]`: List of embedding dimensions corresponding to the models.
+
+# Returns
+- `Dict{Int, BenchmarkTools.Trial}`: Mapping `embedding dimension => benchmark trial`.
+- Also displays a plot of computation time vs embedding dimension.
+"""
+function benchmark_conec_for_dim(models::Vector{ConEcModel}, local_path::String, dims::Vector{Int}=[50,100,200])
+    results = Dict{Int, BenchmarkTools.Trial}()
+
+    for (model, dim) in zip(models, dims)
+        @info "Benchmarking ConEc (dim = $dim)"
+        results[dim] = @benchmark conec_embeddings_for_file($model, $local_path)
+    end
+
+    display(_plot_benchmark(results, "embedding dimension"; mode=:conec))
+    return results
 end
