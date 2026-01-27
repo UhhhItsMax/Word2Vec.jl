@@ -1,11 +1,4 @@
 
-
-using Serialization: serialize, deserialize
-using SparseArrays: SparseMatrixCSC, sparse
-
-export SparseContextMatrix, save_sparse_context_matrix, load_sparse_context_matrix
-
-
 """
     SparseContextMatrix{T<:Real}
 
