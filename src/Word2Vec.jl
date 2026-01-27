@@ -1,5 +1,10 @@
 module Word2Vec
 
+
+using Plots: plot, display
+using BenchmarkTools: @Benchmark, Trial, minimum
+
+
 export Word2VecModel,
        get_embedding,
        get_embedding_norm,

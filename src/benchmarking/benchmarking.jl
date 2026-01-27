@@ -1,9 +1,4 @@
 
-using BenchmarkTools
-using Plots
-
-export benchmark_cbow_for_dim, benchmark_cbow_for_epochs, benchmark_cbow_for_window, benchmark_model_quality, SimilarityTest, AnalogyTest, benchmark_conec_for_window, benchmark_conec_for_local_corpus_size, benchmark_conec_for_dim
-
 
 """
     _plot_benchmark(results::Dict{<:Integer, T}, x_axis::AbstractString; mode::Symbol=:cbow) where {T}
