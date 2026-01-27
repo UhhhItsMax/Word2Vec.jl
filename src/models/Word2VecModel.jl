@@ -1,7 +1,3 @@
-export Word2VecModel, get_embedding, from_dict_data, get_embedding_norm
-
-using LinearAlgebra: norm, dot
-
 
 """
 	Word2VecModel

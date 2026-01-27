@@ -5,6 +5,7 @@ using Plots: plot, display
 using BenchmarkTools: @benchmark, Trial, minimum
 using SparseArrays: SparseMatrixCSC, sparse, spzeros, nzrange, rowvals, nonzeros, nnz
 using Serialization: serialize, deserialize
+using LinearAlgebra: norm, dot
 
 
 export Word2VecModel,
