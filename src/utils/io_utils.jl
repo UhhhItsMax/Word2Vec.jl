@@ -1,4 +1,3 @@
-export read_wordlist, clean_line, read_corpus_sentences, read_corpus_tokens
 
 """
     read_wordlist(path::AbstractString) -> Vector{String}

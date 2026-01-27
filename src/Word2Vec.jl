@@ -1,12 +1,15 @@
 module Word2Vec
 
 
-using Plots: plot, display
+using Plots: plot, display, scatter, annotate!
 using BenchmarkTools: @benchmark, Trial, minimum
 using SparseArrays: SparseMatrixCSC, sparse, spzeros, nzrange, rowvals, nonzeros, nnz
 using Serialization: serialize, deserialize
 using LinearAlgebra: norm, dot, mul!
-using Random: shuffle!, 
+using Random: shuffle!, seed!
+using Statistics: mean
+using TSne: tsne
+using Distances: evaluate
 
 
 export Word2VecModel,

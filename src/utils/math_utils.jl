@@ -1,5 +1,3 @@
-export center_rows!, center_rows
-using Statistics: mean
 
 """
     center_rows!(X) -> X
