@@ -25,7 +25,10 @@ export Word2VecModel,
        benchmark_cbow_for_window,
        SimilarityTest, 
        AnalogyTest,
-       benchmark_model_quality
+       benchmark_model_quality,
+       benchmark_conec_for_window,
+       benchmark_conec_for_local_corpus_size,
+       benchmark_conec_for_dim
 
 
 include("models/Word2VecModel.jl")
