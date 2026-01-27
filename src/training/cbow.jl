@@ -1,8 +1,3 @@
-export train_cbow
-
-using Random
-using LinearAlgebra: mul!
-
 
 """
     train_cbow(corpus; dim=50, window=2, epochs=5, lr=0.05, min_count=1, seed=42, verbose=false) -> Word2VecModel
@@ -77,7 +72,7 @@ function train_cbow(
         count = 0
 
         order = collect(1:n)
-        Random.shuffle!(rng, order)
+        shuffle!(rng, order)
 
         for pos in order
             target = idx_tokens[pos]
