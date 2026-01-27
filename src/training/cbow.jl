@@ -1,6 +1,5 @@
 export train_cbow
 
-using Word2Vec
 using Random
 using LinearAlgebra: mul!
 
