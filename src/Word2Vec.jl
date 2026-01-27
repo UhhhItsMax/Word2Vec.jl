@@ -2,7 +2,7 @@ module Word2Vec
 
 
 using Plots: plot, display
-using BenchmarkTools: @Benchmark, Trial, minimum
+using BenchmarkTools: @benchmark, Trial, minimum
 
 
 export Word2VecModel,
