@@ -3,6 +3,7 @@ module Word2Vec
 
 using Plots: plot, display
 using BenchmarkTools: @benchmark, Trial, minimum
+using SparseArrays: SparseMatrixCSC, sparse, spzeros, nzrange, rowvals, nonzeros, nnz
 
 
 export Word2VecModel,
