@@ -1,13 +1,13 @@
-using Test
+using Test: @testset, @test
 using SparseArrays: nnz
-using Word2Vec
+using Word2Vec: get_co_occurence_counts, SparseContextMatrix, save_sparse_context_matrix, load_sparse_context_matrix
 
 @testset "ContextMatrix" begin
     path = joinpath(@__DIR__, "data", "context_matrix.txt")
 
     @testset "co-occurrence counts" begin
         token_to_id = Dict("a" => 1, "b" => 2, "c" => 3, "d" => 4)
-        coocs = Word2Vec.get_co_occurence_counts(path, token_to_id, 1)
+        coocs = get_co_occurence_counts(path, token_to_id, 1)
 
         @test coocs[(1, 2)] == 1
         @test coocs[(3, 2)] == 1
@@ -16,7 +16,7 @@ using Word2Vec
     end
 
     @testset "build matrix" begin
-        cm = Word2Vec.SparseContextMatrix(path; window_size=1, min_count=1)
+        cm = SparseContextMatrix(path; window_size=1, min_count=1)
         @test size(cm.mat) == (4, 4)
         @test nnz(cm.mat) == 4
         @test length(cm.vocab) == 4
@@ -27,14 +27,14 @@ using Word2Vec
         path = joinpath(@__DIR__, "data", "context_matrix.txt")
         tmp = joinpath(mktempdir(), "scm.bin")
 
-        cm = Word2Vec.SparseContextMatrix(
+        cm = SparseContextMatrix(
             path;
             window_size = 1,
             min_count = 1,
         )
 
-        Word2Vec.save_sparse_context_matrix(tmp, cm)
-        cm2 = Word2Vec.load_sparse_context_matrix(tmp)
+        save_sparse_context_matrix(tmp, cm)
+        cm2 = load_sparse_context_matrix(tmp)
 
         @test size(cm2.mat) == size(cm.mat)
         @test nnz(cm2.mat) == nnz(cm.mat)

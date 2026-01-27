@@ -24,10 +24,6 @@ A Julia file providing evaluation utilities for Word2Vec models.
 - `LinearAlgebra` (for `norm` and `dot`)
 """
 
-using LinearAlgebra
-
-export similarity, analogy
-
 """
     cosine_similarity(v1::AbstractVector{<:Real}, v2::AbstractVector{<:Real}) :: Float64
 

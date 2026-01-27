@@ -1,6 +1,6 @@
-using Test
-using Word2Vec
-using SparseArrays
+using Test: @testset, @test
+using Word2Vec: train_cbow, ConEcModel, Word2VecModel, conec_embeddings_for_file, SparseContextMatrix
+using SparseArrays: nnz
 using LinearAlgebra: norm
 
 

@@ -1,32 +1,32 @@
-using Test
-using Word2Vec
+using Test: @testset, @test, @test_throws
+using Word2Vec: _flatten_corpus, _build_vocab_and_encode, _context_indices, _softmax!, train_cbow
 
 @testset "cbow.jl helpers" begin
     @testset "_flatten_corpus" begin
         # token vector (Vector{SubString{String}} from split)
         toks = split("the quick brown fox")
-        flat = Word2Vec._flatten_corpus(toks)
+        flat = _flatten_corpus(toks)
         @test flat isa Vector{String}
         @test flat == ["the", "quick", "brown", "fox"]
 
         # sentence list
         sents = [split("hello world"), split("julia rocks")]
-        flat2 = Word2Vec._flatten_corpus(sents)
+        flat2 = _flatten_corpus(sents)
         @test flat2 isa Vector{String}
         @test flat2 == ["hello", "world", "julia", "rocks"]
 
         # invalid type
-        @test_throws ArgumentError Word2Vec._flatten_corpus(123)
+        @test_throws ArgumentError _flatten_corpus(123)
 
         # bad sentence element
         bad = Any[split("ok sentence"), 123]
-        @test_throws ArgumentError Word2Vec._flatten_corpus(bad)
+        @test_throws ArgumentError _flatten_corpus(bad)
     end
 
     @testset "_build_vocab_and_encode" begin
         tokens = ["a", "b", "a", "c", "b", "a"]
 
-        vocab, w2i, idx = Word2Vec._build_vocab_and_encode(tokens; min_count=1)
+        vocab, w2i, idx = _build_vocab_and_encode(tokens; min_count=1)
         @test vocab isa Vector{String}
         @test w2i isa Dict{String,Int}
         @test idx isa Vector{Int}
@@ -37,13 +37,13 @@ using Word2Vec
         @test all(1 .<= idx .<= length(vocab))
 
         # filtering with min_count
-        vocab2, w2i2, idx2 = Word2Vec._build_vocab_and_encode(tokens; min_count=3) # only "a"
+        vocab2, w2i2, idx2 = _build_vocab_and_encode(tokens; min_count=3) # only "a"
         @test vocab2 == ["a"]
         @test w2i2["a"] == 1
         @test idx2 == [1, 0, 1, 0, 0, 1]  # b,c filtered -> 0
 
         # empty after filtering should throw but will be handled in train_cbow
-        vocab3, w2i3, idx3 = Word2Vec._build_vocab_and_encode(tokens; min_count=10^9)
+        vocab3, w2i3, idx3 = _build_vocab_and_encode(tokens; min_count=10^9)
         @test isempty(vocab3)
         @test isempty(w2i3)
         @test all(==(0), idx3)
@@ -53,27 +53,27 @@ using Word2Vec
         idx_tokens = [1, 2, 3, 4, 5]
 
         # middle position, window=1
-        ctx = Word2Vec._context_indices(idx_tokens, 3, 1)
+        ctx = _context_indices(idx_tokens, 3, 1)
         @test ctx == [2, 4]
 
         # edge position, window=2 (only right side exists)
-        ctx2 = Word2Vec._context_indices(idx_tokens, 1, 2)
+        ctx2 = _context_indices(idx_tokens, 1, 2)
         @test ctx2 == [2, 3]
 
         # skips zeros
         idx_tokens2 = [1, 0, 3, 0, 5]
-        ctx3 = Word2Vec._context_indices(idx_tokens2, 3, 2)
+        ctx3 = _context_indices(idx_tokens2, 3, 2)
         @test ctx3 == [1, 5]
 
         # single element => empty context
-        ctx4 = Word2Vec._context_indices([7], 1, 2)
+        ctx4 = _context_indices([7], 1, 2)
         @test isempty(ctx4)
     end
 
         @testset "_softmax!" begin
         x = [0.0, 0.0, 0.0]
         out = zeros(Float64, 3)
-        Word2Vec._softmax!(out, x)
+        _softmax!(out, x)
 
         @test all(isfinite, out)
         @test isapprox(sum(out), 1.0; atol=1e-12)
@@ -82,7 +82,7 @@ using Word2Vec
         # stability: large values
         x2 = [1000.0, 1001.0, 999.0]
         out2 = zeros(Float64, 3)
-        Word2Vec._softmax!(out2, x2)
+        _softmax!(out2, x2)
 
         @test all(isfinite, out2)
         @test isapprox(sum(out2), 1.0; atol=1e-12)

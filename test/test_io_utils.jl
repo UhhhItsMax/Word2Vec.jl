@@ -1,5 +1,5 @@
-using Test
-using Word2Vec
+using Test: @testset, @test, @test_throws
+using Word2Vec: clean_line, read_wordlist, read_corpus_sentences, read_corpus_tokens
 
 const _DATA = joinpath(@__DIR__, "data")
 

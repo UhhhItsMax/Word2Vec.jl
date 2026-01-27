@@ -1,5 +1,5 @@
-using Test
-using Word2Vec
+using Test: @testset, @test, @test_throws
+using Word2Vec: save_word2vec, _save_word2vec_binary, _save_word2vec_text, Word2VecModel, load_binary_embeddings, load_word2vec
 
 @testset "_save_word2vec_binary" begin
 
@@ -17,7 +17,7 @@ using Word2Vec
         path = joinpath(dir, "test.bin")
 
         # Save
-        Word2Vec._save_word2vec_binary(model, path)
+        _save_word2vec_binary(model, path)
 
         @test isfile(path)
 
@@ -29,7 +29,7 @@ using Word2Vec
         end
 
         @testset "round-trip load" begin
-            vocab2, emb2 = Word2Vec.load_binary_embeddings(path)
+            vocab2, emb2 = load_binary_embeddings(path)
 
             @test vocab2 == vocab
             @test size(emb2) == size(embeddings)
@@ -75,15 +75,15 @@ end
         0.4 0.3 0.1;
         0.5 0.0 0.0
     ]  # 5 x 3 matrix
-    model = Word2Vec.Word2VecModel(vocab, embeddings)
+    model = Word2VecModel(vocab, embeddings)
 
     # Round-trip test using a temporary file
     mktempdir() do tmpdir
         path = joinpath(tmpdir, "model.txt")
-        Word2Vec._save_word2vec_text(model, path)
+        _save_word2vec_text(model, path)
 
         # Load back using your loader
-        model2 = Word2Vec.load_word2vec(path)
+        model2 = load_word2vec(path)
 
         # Check vocab
         @test model2.vocab == vocab
@@ -96,7 +96,7 @@ end
     # Test header line is correct
     mktempdir() do tmpdir
         path = joinpath(tmpdir, "model.txt")
-        Word2Vec._save_word2vec_text(model, path)
+        _save_word2vec_text(model, path)
         firstline = open(path) do io
             readline(io)
         end
@@ -106,7 +106,7 @@ end
     # Test that file is human-readable: contains the first word
     mktempdir() do tmpdir
         path = joinpath(tmpdir, "model.txt")
-        Word2Vec._save_word2vec_text(model, path)
+        _save_word2vec_text(model, path)
         content = read(path, String)
         @test occursin("king", content)
     end
@@ -123,14 +123,14 @@ end
     @testset "round-trip text1 save/load" begin
         mktempdir() do d
             # Load original text model
-            model = Word2Vec.load_word2vec(txt_path_1)
+            model = load_word2vec(txt_path_1)
 
             # Save to new temporary file in text format
             out_file = joinpath(d, "model.txt")
-            Word2Vec.save_word2vec(model, out_file; format=:text)
+            save_word2vec(model, out_file; format=:text)
 
             # Reload
-            model2 = Word2Vec.load_word2vec(out_file)
+            model2 = load_word2vec(out_file)
 
             @test model2.vocab == model.vocab
             @test model2.embeddings ≈ model.embeddings  # approximate equality
@@ -140,14 +140,14 @@ end
     @testset "round-trip text2 save/load" begin
         mktempdir() do d
             # Load original text model
-            model = Word2Vec.load_word2vec(txt_path_2)
+            model = load_word2vec(txt_path_2)
 
             # Save to new temporary file in text format
             out_file = joinpath(d, "model.txt")
-            Word2Vec.save_word2vec(model, out_file; format=:text)
+            save_word2vec(model, out_file; format=:text)
 
             # Reload
-            model2 = Word2Vec.load_word2vec(out_file)
+            model2 = load_word2vec(out_file)
 
             @test model2.vocab == model.vocab
             @test model2.embeddings ≈ model.embeddings
@@ -158,14 +158,14 @@ end
     @testset "round-trip binary save/load" begin
         mktempdir() do d
             # Load original binary model
-            model = Word2Vec.load_word2vec(bin_path)
+            model = load_word2vec(bin_path)
 
             # Save to new temporary file in binary format
             out_file = joinpath(d, "model.bin")
-            Word2Vec.save_word2vec(model, out_file; format=:binary)
+            save_word2vec(model, out_file; format=:binary)
 
             # Reload
-            model2 = Word2Vec.load_word2vec(out_file)
+            model2 = load_word2vec(out_file)
 
             @test model2.vocab == model.vocab
             @test model2.embeddings ≈ model.embeddings  # approximate equality for Float32 -> Float64 conversion
@@ -175,9 +175,9 @@ end
     @testset "invalid format raises error" begin
         mktempdir() do d
             out_file = joinpath(d, "bad_model.xyz")
-            model = Word2Vec.load_word2vec(txt_path_2)
+            model = load_word2vec(txt_path_2)
 
-            @test_throws ArgumentError Word2Vec.save_word2vec(model, out_file; format=:foo)
+            @test_throws ArgumentError save_word2vec(model, out_file; format=:foo)
         end
     end
 
