@@ -9,22 +9,13 @@ in which case the row is left unchanged).
 
 """
 function l2normalize_rows!(X::AbstractMatrix{<:Real})
-    @inbounds for i in 1:size(X, 1)
-        s = 0.0
-        for j in 1:size(X, 2)
-            v = float(X[i, j])
-            s += v*v
-        end
+    @inbounds for row in eachrow(X)
+        s = sum(float.(row).^2)
         nrm = sqrt(s)
-        if nrm > 0
-            for j in 1:size(X, 2)
-                X[i, j] = float(X[i, j]) / nrm
-            end
-        end
+        nrm > 0 && (row .= float.(row) ./ nrm)
     end
     return X
 end
-
 """
     l2normalize_rows(X) -> Y
 
