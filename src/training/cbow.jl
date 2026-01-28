@@ -1,6 +1,5 @@
-
 """
-    train_cbow(corpus; dim=50, window=2, epochs=5, lr=0.05, min_count=1, seed=42, verbose=false) -> Word2VecModel
+    train_cbow(corpus; dim=50, window=2, epochs=5, lr=0.05, min_count=1, seed=42, verbose=false)
 
 Train a Word2Vec model using the **CBOW (Continuous Bag-of-Words)** objective.
 
@@ -134,61 +133,91 @@ end
 
 
 """
-    _flatten_corpus(corpus) -> Vector{String}
+    _flatten_corpus(corpus::AbstractVector{<:AbstractString})
 
-Internal helper: normalize `corpus` into a single flat vector of `String` tokens.
+Convert a flat vector of tokens into a `Vector{String}`.
 
-Accepted inputs:
-- `Vector{<:AbstractString}`: returned as `Vector{String}` via `String.(corpus)`.
-- `Vector{Vector{<:AbstractString}}`: each sentence is converted and concatenated into one token stream.
-
-This exists to support common inputs such as `split("...")`, which returns `Vector{SubString{String}}`.
+# Arguments
+- `corpus::AbstractVector{<:AbstractString}`: A vector of tokens, which may be `SubString{String}` or any subtype of `AbstractString`.
 
 # Returns
-- A flat `Vector{String}` containing all tokens in order.
+- `Vector{String}`: A new vector containing all tokens as `String` objects.
 
-# Throws
-- ArgumentError if corpus is neither a token vector nor a vector of tokenized sentences.
-- ArgumentError if any element in the sentence list is not AbstractVector{<:AbstractString}.
+# Notes
+- This method is used internally to ensure consistent string types before training or processing.
+- Does not modify the original vector.
 """
-function _flatten_corpus(corpus)
-    if corpus isa AbstractVector{<:AbstractString}
-        return String.(corpus)
-    elseif corpus isa AbstractVector
-        out = String[]
-        for sent in corpus
-            sent isa AbstractVector{<:AbstractString} ||
-                throw(ArgumentError("corpus must be Vector{String} or Vector{Vector{String}}"))
-            append!(out, String.(sent))
+_flatten_corpus(corpus::AbstractVector{<:AbstractString}) = String.(corpus)
+
+
+"""
+    _flatten_corpus(corpus::AbstractVector{<:AbstractVector{<:AbstractString}})
+
+Flatten a vector of tokenized sentences into a single `Vector{String}`.
+
+# Arguments
+- `corpus::AbstractVector{<:AbstractVector{<:AbstractString}}`  
+  A vector of sentences, where each sentence is a vector of tokens (e.g., `Vector{SubString{String}}`).
+
+# Returns
+- `Vector{String}`: A flat vector containing all tokens from all sentences in order, converted to `String`.
+
+# Notes
+- This is used internally to normalize input corpora before training.
+- Preallocates the output vector for efficiency.
+"""
+function _flatten_corpus(corpus::AbstractVector{<:AbstractVector{<:AbstractString}})
+    total_len = sum(length(sent) for sent in corpus)
+    out = Vector{String}(undef, total_len)
+    pos = 1
+    for sent in corpus
+        for tok in sent
+            out[pos] = String(tok)
+            pos += 1
         end
-        return out
-    else
-        throw(ArgumentError("corpus must be Vector{String} or Vector{Vector{String}}"))
     end
+    return out
 end
 
 
 """
-    _build_vocab_and_encode(tokens; min_count=1) -> (vocab, word_to_idx, idx_tokens)
+    _flatten_corpus(corpus)
 
-Internal helper: build a vocabulary from a flat token stream and encode tokens as integer indices.
+Fallback method that throws an error for invalid corpus inputs.
 
 # Arguments
-- `tokens::Vector{String}`: Flat token list.
+- `corpus`: The input provided to `_flatten_corpus`.
 
-# Keyword arguments
-- `min_count::Int=1`: Only keep tokens with frequency `>= min_count`.
-
-# Returns
-- `vocab::Vector{String}`:
-  Vocabulary list, sorted deterministically by decreasing frequency and then lexicographically.
-- `word_to_idx::Dict{String,Int}`:
-  Mapping from token to its 1-based index in `vocab`.
-- `idx_tokens::Vector{Int}`:
-  Encoded token stream. Tokens not in `vocab` are encoded as `0`.
+# Throws
+- `ArgumentError` if `corpus` is not a `Vector{String}` or a `Vector{Vector{String}}`.
 
 # Notes
-- This function does not throw if `vocab` becomes empty; callers may check `isempty(vocab)`.
+- Serves as a catch-all to ensure only supported corpus formats are processed.
+"""
+_flatten_corpus(corpus) = throw(
+    ArgumentError("corpus must be Vector{String} or Vector{Vector{String}}")
+)
+
+
+"""
+    _build_vocab_and_encode(tokens; min_count=1)
+
+Internal helper: construct a vocabulary from a flat token vector and encode each token as an integer index.
+
+# Arguments
+- `tokens::Vector{String}`: Flat vector of tokens from a corpus.
+
+# Keyword Arguments
+- `min_count::Int=1`: Minimum frequency threshold; tokens with counts below this are excluded.
+
+# Returns
+- `vocab::Vector{String}`: Sorted list of tokens by decreasing frequency, then alphabetically.
+- `word_to_idx::Dict{String,Int}`: Mapping from each token to its 1-based index in `vocab`.
+- `idx_tokens::Vector{Int}`: Integer-encoded version of `tokens`, with tokens not in `vocab` encoded as `0`.
+
+# Notes
+- Does not throw if no tokens survive `min_count`; callers should check `isempty(vocab)`.
+- Useful for converting text corpora into integer indices for Word2Vec training.
 """
 function _build_vocab_and_encode(tokens::Vector{String}; min_count::Int)
     counts = Dict{String, Int}()
@@ -210,21 +239,20 @@ function _build_vocab_and_encode(tokens::Vector{String}; min_count::Int)
     return vocab, word_to_idx, idx_tokens
 end
 
+
 """
-    _context_indices(idx_tokens, pos, window) -> Vector{Int}
+    _context_indices(idx_tokens, pos, window)
 
-Internal helper: collect the encoded context word indices around `pos`.
-
-Context indices are taken from the range `[pos-window, pos+window]`, excluding `pos`.
-Any token encoded as `0` (filtered/unknown) is skipped.
+Internal helper: retrieve the indices of context words around a target position.
 
 # Arguments
-- `idx_tokens::Vector{Int}`: Encoded token stream (0 indicates filtered/unknown).
-- `pos::Int`: Target position (1-based).
-- `window::Int`: Window size on each side.
+- `idx_tokens::Vector{Int}`: Encoded token sequence (0 for unknown/filtered tokens).
+- `pos::Int`: 1-based index of the target token.
+- `window::Int`: Symmetric window size around `pos`.
 
 # Returns
-- A `Vector{Int}` of context vocabulary indices (positive integers). May be empty.
+- `Vector{Int}`: List of context token indices (positive integers), excluding the target.
+  May be empty if no valid context tokens are present.
 """
 function _context_indices(idx_tokens::Vector{Int}, pos::Int, window::Int)
     n = length(idx_tokens)
@@ -241,24 +269,23 @@ function _context_indices(idx_tokens::Vector{Int}, pos::Int, window::Int)
     return ctx
 end
 
+
 """
-    _softmax!(out, x) -> out
+    _softmax!(out, x)
 
-Internal helper: compute a numerically stable softmax of `x` into `out` in-place.
-
-Uses the standard stabilization trick:
-`softmax(x) = exp.(x .- maximum(x)) ./ sum(exp.(x .- maximum(x)))`
+Internal helper: compute a numerically stable softmax of `x` in-place into `out`.
 
 # Arguments
-- `out::Vector{Float64}`: Output buffer (same length as `x`).
-- `x::Vector{Float64}`: Input logits / scores.
+- `out::Vector{Float64}`: Preallocated output buffer (same length as `x`).
+- `x::Vector{Float64}`: Input scores or logits.
 
 # Returns
-- The mutated `out` vector (for convenience).
+- `out::Vector{Float64}`: The softmax-normalized probabilities (same buffer, mutated in-place).
 
 # Notes
-- Adds a small epsilon to the denominator to avoid division by zero in degenerate cases.
-- Intended for inner-loop use to reduce allocations.
+- Implements `softmax(x) = exp.(x .- maximum(x)) ./ sum(exp.(x .- maximum(x)))` to improve numerical stability.
+- Adds a small epsilon to the denominator to avoid division by zero.
+- Designed for inner-loop performance to minimize allocations.
 """
 function _softmax!(out::Vector{Float64}, x::Vector{Float64})
     m = maximum(x)

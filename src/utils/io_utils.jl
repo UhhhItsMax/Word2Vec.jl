@@ -1,8 +1,17 @@
-
 """
-    read_wordlist(path::AbstractString) -> Vector{String}
+    read_wordlist(path::AbstractString)
 
-Read a word list file (one word per line). Empty lines and lines starting with `#` are ignored.
+Read a word list from a text file, one word per line.
+
+# Arguments
+- `path::AbstractString`: Path to the file containing the word list.
+
+# Returns
+- `Vector{String}`: Words in the file, in order, with empty lines and lines starting with `#` ignored.
+
+# Notes
+- Leading and trailing whitespace on each line is stripped.
+- Lines that are empty or start with `#` are skipped.
 """
 function read_wordlist(path::AbstractString)
     out = String[]
@@ -14,30 +23,32 @@ function read_wordlist(path::AbstractString)
     return out
 end
 
+
 """
-    clean_line(line::AbstractString;
-               lowercase::Bool=true,
-               strip_punct::Bool=true,
-               dash_rule::Bool=true) -> Union{String,Nothing}
+    clean_line(line::AbstractString; lowercase=true, strip_punct=true, dash_rule=true) 
 
-Clean a single text line for tokenization.
+Clean a single line of text for tokenization.
 
-- Trims whitespace.
-- Optionally lowercases.
-- If the stripped line consists only of dashes (`-`):
-  - If `dash_rule=true` and the line has 3+ dashes, drop it (treat as separator) => `nothing`.
-  - Otherwise keep the dash line verbatim (even if `strip_punct=true`).
-- If `strip_punct=true`, replaces non-alphanumeric characters with spaces.
-- Collapses internal whitespace to a single space.
+# Arguments
+- `line::AbstractString`: Input text line.
+- `lowercase::Bool=true`: Convert text to lowercase if true.
+- `strip_punct::Bool=true`: Replace non-alphanumeric characters with spaces if true.
+- `dash_rule::Bool=true`: Drop lines consisting of 3 or more dashes (`---`) if true.
 
-Returns `nothing` if the line becomes empty (or is dropped by the dash rule),
-otherwise returns the cleaned line as a `String`.
+# Returns
+- `String` if the line has meaningful content after cleaning.
+- `nothing` if the line is empty or dropped by the dash rule.
+
+# Notes
+- Leading/trailing whitespace is trimmed.
+- Internal whitespace is collapsed to a single space.
+- Lines of dashes are treated according to `dash_rule`.
 """
 function clean_line(line::AbstractString;
     lowercase::Bool=true,
     strip_punct::Bool=true,
     dash_rule::Bool=true
-)::Union{String,Nothing}
+)
     s = strip(String(line))
     isempty(s) && return nothing
 
@@ -63,14 +74,23 @@ function clean_line(line::AbstractString;
     return isempty(s) ? nothing : s
 end
 
+
 """
-    read_corpus_sentences(path::AbstractString; kwargs...) -> Vector{Vector{String}}
+    read_corpus_sentences(path::AbstractString; kwargs...)
 
-Read a corpus file where each line is treated as a sentence.
+Read a text corpus where each line is treated as a separate sentence.
 
-Each non-empty cleaned line becomes `split(cleaned_line)` and is appended as a sentence.
-This preserves sentence boundaries so context windows do not cross sentences.
-Keyword arguments are forwarded to `clean_line`.
+# Arguments
+- `path::AbstractString`: Path to the corpus file.
+- `kwargs...`: Optional keyword arguments forwarded to `clean_line` (e.g., `lowercase`, `strip_punct`, `dash_rule`).
+
+# Returns
+- `Vector{Vector{String}}`: A vector of sentences, each represented as a vector of tokens.
+
+# Notes
+- Empty or dropped lines (according to `clean_line`) are skipped.
+- Sentence boundaries are preserved: context windows do not cross lines.
+- Each line is tokenized by splitting on whitespace after cleaning.
 """
 function read_corpus_sentences(path::AbstractString; kwargs...)
     isfile(path) || throw(ArgumentError("corpus file does not exist: $path"))
@@ -86,13 +106,23 @@ function read_corpus_sentences(path::AbstractString; kwargs...)
     return sentences
 end
 
+
 """
-    read_corpus_tokens(path::AbstractString; kwargs...) -> Vector{String}
+    read_corpus_tokens(path::AbstractString; kwargs...)
 
-Read a corpus file and return a single flat token stream (`Vector{String}`).
+Read a corpus file and return a flat token vector.
 
-This reads line-by-line, cleans each line with `clean_line`, splits into tokens,
-and concatenates all tokens into one vector (sentence boundaries are ignored).
+# Arguments
+- `path::AbstractString`: Path to the corpus file.
+- `kwargs...`: Optional keyword arguments forwarded to `clean_line` (e.g., `lowercase`, `strip_punct`, `dash_rule`).
+
+# Returns
+- `Vector{String}`: A single flat list of all tokens in the corpus.
+
+# Notes
+- Lines are cleaned using `clean_line` and split into tokens.
+- Sentence boundaries are ignored; all tokens are concatenated into one vector.
+- Empty lines or lines dropped by `clean_line` are skipped.
 """
 function read_corpus_tokens(path::AbstractString; kwargs...)
     sents = read_corpus_sentences(path; kwargs...)

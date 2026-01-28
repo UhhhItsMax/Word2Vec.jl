@@ -1,27 +1,44 @@
-
-# i get warning, so i wrap the func here 
 const _TSNE_METRIC = SqEuclidean()
-_tsne_dist(a, b) = evaluate(_TSNE_METRIC, a, b)
+
 
 """
-    embedding_points(model::Word2VecModel; words=nothing, normalize=false) -> (X, labels)
+    _tsne_dist(a, b)
 
-Extract embedding vectors from `model` in a format suitable for dimensionality reduction.
+Compute the squared Euclidean distance between vectors `a` and `b`.
 
-THe model stores embeddings as `(dim, |vocab|)`. This function returns points as rows:
-`X` has shape `(n_points, dim)` and `labels[i]` corresponds to row `i` in `X`.
-
-# Keyword arguments
-- `words=nothing`: If `nothing`, use the full vocabulary. If a vector of strings, only keep words
-  that exist in the model (`unknown` words are skipped).
-- `normalize=false`: If `true`, L2-normalize each embedding vector before returning.
+# Arguments
+- `a::AbstractVector{<:Real}`: First vector.
+- `b::AbstractVector{<:Real}`: Second vector.
 
 # Returns
-- `X::Matrix{Float64}`: points-as-rows matrix, size `(n_points, dim)`
-- `labels::Vector{String}`: labels for each row
+- `Float64`: Squared Euclidean distance between `a` and `b`.
 
 # Notes
-- If `words` is provided and none are in the vocab, `X` will have 0 rows and `labels` is empty.
+- Uses `evaluate(_TSNE_METRIC, a, b)` internally, where `_TSNE_METRIC` is a constant `SqEuclidean()` metric.
+- Intended for use as a helper function in t-SNE computations.
+"""
+_tsne_dist(a, b) = evaluate(_TSNE_METRIC, a, b)
+
+
+"""
+    embedding_points(model::Word2VecModel; words=nothing, normalize=false)
+
+Return a points-as-rows matrix of embeddings suitable for dimensionality reduction.
+
+# Arguments
+- `model::Word2VecModel`: The trained Word2Vec model.
+
+# Keyword Arguments
+- `words=nothing`: If `nothing`, use all words in the vocabulary. Otherwise, provide a vector of strings; only existing words are included.
+- `normalize=false`: If `true`, L2-normalize each row of the returned matrix.
+
+# Returns
+- `X::Matrix{Float64}`: Embedding vectors as rows `(n_points × dim)`.
+- `labels::Vector{String}`: Corresponding words for each row.
+
+# Notes
+- Rows correspond to the selected words; `labels[i]` matches `X[i, :]`.
+- If no provided words exist in the vocabulary, returns an empty matrix and empty label vector.
 """
 function embedding_points(model::Word2VecModel; words=nothing, normalize::Bool=false)
     if words === nothing
@@ -50,26 +67,31 @@ end
 """
     tsne_embeddings(model::Word2VecModel;
                     dims=2, words=nothing, normalize=false,
-                    seed=42, reduce_dims=50, max_iter=1000, perplexity=30, kwargs...) -> (Y, labels)
+                    seed=42, reduce_dims=50, max_iter=1000, perplexity=30, kwargs...)
 
-Compute a t-SNE embedding of the model's word vectors.
+Compute a t-SNE projection of word embeddings from a `Word2VecModel`.
 
-`TSne.tsne` expects points as rows and uses the API:
-`tsne(X, ndims, reduce_dims, max_iter, perplexity; kwargs...)`.
+# Arguments
+- `model::Word2VecModel`: The trained Word2Vec model.
 
-# Keyword arguments
-- `dims::Int=2`: Output dimensionality.
-- `words=nothing`: Optional subset of words to embed.
-- `normalize=false`: If `true`, L2-normalize word vectors before running t-SNE.
-- `seed::Int=42`: RNG seed for reproducibility.
-- `reduce_dims::Int=50`: Initial reduction dimension used inside TSne.jl (clamped to `size(X,2)`).
-- `max_iter::Int=1000`: Number of optimization iterations.
+# Keyword Arguments
+- `dims::Int=2`: Number of output dimensions.
+- `words=nothing`: Optional subset of words to embed. If `nothing`, all words are used.
+- `normalize=false`: If `true`, L2-normalize embeddings before t-SNE.
+- `seed::Int=42`: Random seed for reproducibility.
+- `reduce_dims::Int=50`: Initial PCA reduction dimension (clamped to embedding dimension).
+- `max_iter::Int=1000`: Maximum number of t-SNE optimization iterations.
 - `perplexity::Int=30`: t-SNE perplexity hyperparameter.
-- `kwargs...`: forwarded to `TSne.tsne`.
+- `kwargs...`: Additional keyword arguments passed to `TSne.tsne`.
 
 # Returns
-- `Y::Matrix{Float64}`: size `(n_points, dims)`
-- `labels::Vector{String}`: corresponding word labels
+- `Y::Matrix{Float64}`: Row-wise t-SNE coordinates `(n_points × dims)`.
+- `labels::Vector{String}`: Corresponding word labels for each row.
+
+# Notes
+- Uses `_tsne_dist` (squared Euclidean) as the distance metric.
+- Returns an empty `(0 × dims)` matrix if no words are found in the model.
+- Useful for visualization of embeddings in 2D or 3D.
 """
 function tsne_embeddings(
     model::Word2VecModel;

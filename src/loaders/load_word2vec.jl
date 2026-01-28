@@ -1,23 +1,5 @@
 """
-    Word2VecLoader
-
-A Julia module for loading Word2Vec embeddings from text or binary files,
-with automatic format detection.
-
-# Features
-- Detects whether a file is in text or binary Word2Vec format.
-- Loads embeddings into a vocab vector and a embedding matrix mapping words to vectors.
-- Handles optional header lines in text files.
-- Supports Gensim's hybrid binary format (text header + binary vectors).
-- Provides a unified `load_word2vec` function.
-- Safe parsing with error handling for malformed files.
-
-# Dependencies
-- Base Julia (no external packages required)
-"""
-
-"""
-    load_word2vec(path::String) -> Word2VecModel
+    load_word2vec(path::String)
 
 Load a Word2Vec embedding model from a file, automatically detecting
 whether the file is in **text** or **binary** format.
@@ -37,9 +19,9 @@ whether the file is in **text** or **binary** format.
 - Large models may require substantial RAM.
 - Automatically wraps the loaded embeddings in a `Word2VecModel`.
 """
-function load_word2vec(path::String)::Word2VecModel
-    fmt = detect_embedding_format(path)
-    if fmt == :text
+function load_word2vec(path::String)
+    format = detect_embedding_format(path)
+    if format == :text
         vocab, embeddings = load_text_embeddings(path)
     else
         vocab, embeddings = load_binary_embeddings(path)
@@ -47,17 +29,18 @@ function load_word2vec(path::String)::Word2VecModel
     return Word2VecModel(vocab, embeddings)
 end
 
+
 """
-    detect_embedding_format(path::String) :: Symbol
+    detect_embedding_format(path::String)
 
 Heuristically detects whether a Word2Vec embedding file is in text or binary format.
 
 # Arguments
-- `path::String`: Path to the embedding file.
+- `path::String` — Path to the embedding file.
 
 # Returns
-- `:text` if the file appears to be in text format (`word float float ...`).
-- `:binary` if the file appears to be in binary Word2Vec format.
+- `Symbol` — Either `:text` if the file appears to be in text format (`word float float ...`), 
+  or `:binary` if the file appears to be in binary Word2Vec format.
 
 # Notes
 - The function first checks the file extension: files ending in `.bin` are assumed
@@ -68,7 +51,7 @@ Heuristically detects whether a Word2Vec embedding file is in text or binary for
   following tokens resemble floating-point numbers.
 - Only a small prefix of the file is scanned to avoid loading large files into memory.
 """
-function detect_embedding_format(path::AbstractString)::Symbol
+function detect_embedding_format(path::AbstractString)
     fmt::Symbol = :binary  # default assumption
 
     open(path, "r") do io
@@ -92,22 +75,25 @@ function detect_embedding_format(path::AbstractString)::Symbol
     return fmt
 end
 
+
 """
-    load_text_embeddings(path::String) :: Tuple{Vector{String}, Matrix{Float64}}
+    load_text_embeddings(path::String)
 
 Loads Word2Vec embeddings from a text-format file.
 
 # Arguments
-- `path::String`: Path to the text-format Word2Vec embedding file.
+- `path::String` — Path to the text-format Word2Vec embedding file.
 
 # Returns
-- `Tuple{Vector{String}, Matrix{Float64}}`: Vector containing the words, Matrix which contains their respective embedding vector.
+- `(vocab, embeddings)` — A tuple containing:
+    - `vocab::Vector{String}`: Words in the embedding.
+    - `embeddings::Matrix{Float64}`: Corresponding embedding vectors (columns).
 
 # Notes
-- Each line: `word float float ...` (header lines auto-skipped).
-- Skips lines where first token is numeric or vectors can't be parsed.
-- Reads entire file into memory.
-- Throws ErrorException when there was no vocab found
+- Each line of the file should have the form `word float float ...` (header lines are auto-skipped).
+- Lines where the first token is numeric or vectors cannot be parsed are ignored.
+- Reads the entire file into memory.
+- Throws an `ErrorException` if no valid vocabulary is found in the file.
 """
 function load_text_embeddings(path::String)::Tuple{Vector{String}, Matrix{Float64}}
     vocab = String[]
@@ -141,22 +127,26 @@ function load_text_embeddings(path::String)::Tuple{Vector{String}, Matrix{Float6
     return vocab, embeddings
 end
 
+
 """
-    load_binary_embeddings(path::String) :: Tuple{Vector{String}, Matrix{Float64}}
+    load_binary_embeddings(path::String)
 
 Loads Word2Vec embeddings from a Gensim binary-format file.
 
 # Arguments
-- `path::String`: Path to the Gensim binary-format embedding file.
+- `path::String` — Path to the Gensim binary-format embedding file.
 
 # Returns
-- `Tuple{Vector{String}, Matrix{Float64}}`: Vector containing the words, Matrix which contains their respective embedding vector.
+- `(vocab, embeddings)` — A tuple containing:
+    - `vocab::Vector{String}`: Words in the embedding.
+    - `embeddings::Matrix{Float64}`: Corresponding embedding vectors (columns).
 
 # Notes
 - **Gensim hybrid format**: Text header `"vocab_size dim"`, ASCII words (space-terminated), binary Float32 vectors.
 - Vectors are automatically converted from `Float32` to `Float64` for consistency.
-- Matches output of `model.wv.save_word2vec_format(binary=True)` from gensim.test.utils.
-- No pure-binary Int32 header support (gensim-specific).
+- Matches the output of `model.wv.save_word2vec_format(binary=True)` from `gensim`.
+- No support for pure-binary Int32 headers (gensim-specific).
+- Throws an `ErrorException` if the header is malformed or cannot be parsed.
 """
 function load_binary_embeddings(path::String)::Tuple{Vector{String}, Matrix{Float64}}
     open(path, "r") do io

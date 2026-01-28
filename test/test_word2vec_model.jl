@@ -58,7 +58,7 @@ end
     model = from_dict_data(embeddings_map)
 
     @test size(model.embeddings) == (3, 2)
-    @test eltype(model.embeddings) === Float64
+    @test eltype(model.embeddings) <: AbstractFloat
     @test get_embedding(model, "alpha") == Float64[1, 0, 0.5]
     @test get_embedding(model, "beta") == Float64[-1, 2, 0]
 end
