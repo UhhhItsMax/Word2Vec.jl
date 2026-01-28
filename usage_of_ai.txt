@@ -1,0 +1,2 @@
+Chat GPT-5 was used to help create docstrings and stick to the same format for all of the docstrings.
+Note that the LLM was only used for that and not for the rest of documentation or code.
