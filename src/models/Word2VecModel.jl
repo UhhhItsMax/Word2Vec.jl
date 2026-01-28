@@ -25,7 +25,7 @@ struct Word2VecModel
 		@inbounds for (j, col) in enumerate(eachcol(embeddings))
 			n = norm(col)
 			n == 0 && throw(ArgumentError("embedding vector has zero norm for word $(vocab[j])"))
-			vector_norms[j] = Float64(n)
+			vector_norms[j] = convert(Float64, n)
 		end
 
 		return new(vocab, embeddings, vector_norms, word_to_index)
@@ -63,7 +63,7 @@ function from_dict_data(embeddings_map::Dict{String,Vector{T}}) where T<:Abstrac
 	M = Array{Float64}(undef, dim, length(words))
 
 	for (i, w) in enumerate(words)
-		M[:, i] = Float64.(embeddings_map[w])
+		M[:, i] =  convert.(Float64, embeddings_map[w])
 	end
 
 	return Word2VecModel(words, M)

@@ -130,7 +130,7 @@ function _save_word2vec_binary(model::Word2VecModel, path::AbstractString)::Abst
             write(io, UInt8(0x20))  # space
 
             # Convert vector to Float32 (Word2Vec standard)
-            vec32 = Float32.(model.embeddings[:, j])
+            vec32 = convert.(Float32, model.embeddings[:, j])
             write(io, vec32)
         end
     end
