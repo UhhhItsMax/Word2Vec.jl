@@ -21,9 +21,9 @@ text or binary Word2Vec format.
 """
 
 """
-    save_word2vec(model::Word2VecModel, path::AbstractString; format::Symbol = :text)::AbstractString
+    save_word2vec(model::Word2VecModel, path::AbstractString; format::Symbol = :text)
 
-Saves a `Word2VecModel` to disk in Word2Vec-compatible text or binary format.
+Save a `Word2VecModel` to disk in Word2Vec-compatible text or binary format.
 
 # Arguments
 - `model::Word2VecModel`: The Word2Vec model to save.
@@ -53,10 +53,11 @@ function save_word2vec(model::Word2VecModel, path::AbstractString; format::Symbo
     throw(ArgumentError("Unknown format $format. Use :text or :binary."))
 end
 
-"""
-    _save_word2vec_text(model::Word2VecModel, path::AbstractString)::AbstractString
 
-Saves a `Word2VecModel` to disk in the standard Word2Vec **text** format.
+"""
+    _save_word2vec_text(model::Word2VecModel, path::AbstractString)
+
+Save a `Word2VecModel` to disk in the standard Word2Vec **text** format.
 
 # Arguments
 - `model::Word2VecModel`: The Word2Vec model to be saved.
@@ -92,10 +93,11 @@ function _save_word2vec_text(model::Word2VecModel, path::AbstractString)
     return path
 end
 
-"""
-    _save_word2vec_binary(model::Word2VecModel, path::AbstractString)::AbstractString
 
-Saves a `Word2VecModel` to disk in the classic Word2Vec **binary** format.
+"""
+    _save_word2vec_binary(model::Word2VecModel, path::AbstractString)
+
+Save a `Word2VecModel` to disk in the classic Word2Vec **binary** format.
 
 # Arguments
 - `model::Word2VecModel`: The Word2Vec model to be saved.

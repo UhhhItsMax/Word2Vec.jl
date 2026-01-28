@@ -4,22 +4,17 @@
 """
     CircularBuffer{T}
 
-A fixed-capacity **FIFO buffer** that stores elements of type `T` and overwrites the oldest entries when full.
+A fixed-capacity **FIFO buffer** for elements of type `T` that overwrites the oldest entries when full.
 
 # Fields
-- `data::Vector{T}`  
-  Internal storage vector of length `capacity`.
-
-- `head::Int`  
-  Index of the oldest element in the buffer.
-
-- `len::Int`  
-  Current number of elements stored in the buffer.
+- `data::Vector{T}`: Internal storage of length `capacity`.
+- `head::Int`: Index of the oldest element.
+- `len::Int`: Current number of elements stored.
 
 # Notes
 - Supports indexing, iteration, and standard `Base` methods (`length`, `isempty`, `isfull`).
-- When full, pushing a new element overwrites the oldest element.
-- Useful for sliding-window operations, e.g., co-occurrence counting.
+- Pushing an element when full overwrites the oldest value.
+- Ideal for sliding-window tasks such as co-occurrence counting in NLP.
 """
 mutable struct CircularBuffer{T}
 	data::Vector{T}
@@ -27,18 +22,18 @@ mutable struct CircularBuffer{T}
 	len::Int
 
 	"""
-    	CircularBuffer{T}(capacity::Int)
+		CircularBuffer{T}(capacity::Int)
 
-	Create a new `CircularBuffer` of type `T` with a fixed capacity.
+	Create a new `CircularBuffer` of element type `T` with a fixed `capacity`.
 
 	# Arguments
-	- `capacity::Int` — Maximum number of elements the buffer can hold. Must be ≥ 1.
+	- `capacity::Int` — Maximum number of elements the buffer can hold (must be ≥ 1).
 
 	# Throws
 	- `ArgumentError` if `capacity < 1`.
 
 	# Notes
-	- The buffer is initially empty (`len = 0`) and the `head` points to the first element.
+	- The buffer starts empty (`len = 0`) with `head = 1`.
 	- Pushing elements beyond `capacity` overwrites the oldest entries in FIFO order.
 	"""
 	function CircularBuffer{T}(capacity::Int) where T
@@ -55,30 +50,68 @@ end
 Return the fixed capacity of `buf`.
 
 # Notes
-- This is the maximum number of elements the buffer can hold.
-- The current number of stored elements is given by `length(buf)`.
-- Use `isfull(buf)` to check whether the buffer has reached its capacity.
+- The capacity is the maximum number of elements the buffer can hold.
+- The current number of stored elements is `length(buf)`.
+- Use `isfull(buf)` to check whether the buffer has reached capacity.
 """
 capacity(buf::CircularBuffer) = length(buf.data)
 
+
+"""
+    Base.length(buf::CircularBuffer)
+
+Return the current number of elements stored in the circular buffer `buf`.
+
+# Arguments
+- `buf::CircularBuffer`: The circular buffer.
+
+# Returns
+- Number of elements currently in the buffer (≤ `capacity(buf)`).
+
+# Notes
+- Use `capacity(buf)` to get the fixed maximum size.
+- Use `isfull(buf)` to check if the buffer has reached its maximum capacity.
+"""
 Base.length(buf::CircularBuffer) = buf.len
+
+
+"""
+    Base.isempty(buf::CircularBuffer)
+
+Check whether the circular buffer `buf` currently contains no elements.
+
+# Arguments
+- `buf::CircularBuffer`: The circular buffer.
+
+# Returns
+- `Bool`: `true` if the buffer is empty (`length(buf) == 0`), `false` otherwise.
+
+# Notes
+- Even if the buffer has a positive capacity, it is considered empty until elements are pushed.
+"""
 Base.isempty(buf::CircularBuffer) = buf.len == 0
 
 
 """
-    isfull(buf::CircularBuffer) -> Bool
+    isfull(buf::CircularBuffer)
 
-Return `true` if `buf` contains the maximum number of elements (i.e., it is full), otherwise `false`.
+Check whether the circular buffer `buf` has reached its fixed capacity.
+
+# Arguments
+- `buf::CircularBuffer`: The circular buffer.
+
+# Returns
+- `Bool`: `true` if the buffer is full (`length(buf) == capacity(buf)`), `false` otherwise.
 
 # Notes
-- A full buffer will overwrite the oldest elements when new items are pushed.
-- Use `length(buf)` to check the current number of stored elements.
+- When full, pushing a new element overwrites the oldest element in FIFO order.
+- Use `length(buf)` to get the current number of stored elements.
 """
 isfull(buf::CircularBuffer) = buf.len == capacity(buf)
 
 
 """
-    Base.push!(buf::CircularBuffer, item) -> buf
+    Base.push!(buf::CircularBuffer, item)
 
 Push `item` into the circular buffer `buf`.  
 
@@ -111,7 +144,7 @@ end
 
 
 """
-    Base.getindex(buf::CircularBuffer, i::Int) -> item
+    Base.getindex(buf::CircularBuffer, i::Int)
 
 Return the `i`-th item from the circular buffer `buf` in FIFO order.
 

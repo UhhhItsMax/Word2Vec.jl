@@ -25,19 +25,19 @@ A Julia file providing evaluation utilities for Word2Vec models.
 """
 
 """
-    cosine_similarity(v1::AbstractVector{<:Real}, v2::AbstractVector{<:Real}) :: Float64
+    cosine_similarity(v1::AbstractVector{<:Real}, v2::AbstractVector{<:Real})
 
-Computes the **cosine similarity** between two vectors.
+Compute the **cosine similarity** between two vectors.
 
 # Arguments
-- `v1::AbstractVector{<:Real}`: First vector.
-- `v2::AbstractVector{<:Real}`: Second vector.
+- `v1::AbstractVector{<:Real}` — First vector.
+- `v2::AbstractVector{<:Real}` — Second vector.
 
 # Returns
-- `Float64`: Cosine similarity score in the range `[-1.0, 1.0]`.
+- `Float64` — Cosine similarity score in the range `[-1.0, 1.0]`.
 
 # Throws
-- `ArgumentError`: If either `v1` or `v2` is a zero vector.
+- `ArgumentError` — If either `v1` or `v2` is a zero vector.
 
 # Notes
 - Cosine similarity is defined as `dot(v1, v2) / (norm(v1) * norm(v2))`.
@@ -51,18 +51,19 @@ function cosine_similarity(v1::AbstractVector{<:Real}, v2::AbstractVector{<:Real
     return dot(v1, v2) / (n1 * n2)
 end
 
+
 """
-    similarity(model::Word2VecModel, w1::AbstractString, w2::AbstractString) :: Float64
+    similarity(model::Word2VecModel, w1::AbstractString, w2::AbstractString)
 
 Compute the **cosine similarity** between two words in a Word2Vec model.
 
 # Arguments
-- `model::Word2VecModel`: A trained Word2Vec model containing `vocab` and `embeddings`.
-- `w1::AbstractString`: First word.
-- `w2::AbstractString`: Second word.
+- `model::Word2VecModel` — A trained Word2Vec model containing `vocab` and `embeddings`.
+- `w1::AbstractString` — First word.
+- `w2::AbstractString` — Second word.
 
 # Returns
-- `Float64`: Cosine similarity between the embedding vectors of `w1` and `w2`.  
+- `Float64` — Cosine similarity between the embedding vectors of `w1` and `w2`.  
   Range: [-1.0, 1.0].
 
 # Notes
@@ -71,7 +72,7 @@ Compute the **cosine similarity** between two words in a Word2Vec model.
 - Embedding vectors must be non-zero; otherwise similarity is undefined.
 
 # Throws
-- `KeyError`: If either `w1` or `w2` is not in the model vocabulary.
+- `KeyError` — If either `w1` or `w2` is not in the model vocabulary.
 """
 function similarity(model::Word2VecModel, w1::AbstractString, w2::AbstractString)
     # Check words exist
@@ -94,7 +95,7 @@ end
 
 
 """
-    analogy(model::Word2VecModel, a::AbstractString, b::AbstractString, c::AbstractString; topk::Int = 5) :: Vector{String}
+    analogy(model::Word2VecModel, a::AbstractString, b::AbstractString, c::AbstractString; topk::Int = 5)
 
 Solve word analogies using a trained Word2Vec model.
 
@@ -103,16 +104,16 @@ a : b ≈ c : x
 using vector arithmetic: `target = b - a + c`.
 
 # Arguments
-- `model::Word2VecModel`: A trained Word2Vec model containing `vocab` and `embeddings`.
-- `a::AbstractString`: First word in the analogy (`a : b`).
-- `b::AbstractString`: Second word in the analogy (`a : b`).
-- `c::AbstractString`: Third word in the analogy (`c : ?`).
+- `model::Word2VecModel` — A trained Word2Vec model containing `vocab` and `embeddings`.
+- `a::AbstractString` — First word in the analogy (`a : b`).
+- `b::AbstractString` — Second word in the analogy (`a : b`).
+- `c::AbstractString` — Third word in the analogy (`c : ?`).
 
 # Keyword Arguments
-- `topk::Int=5`: Number of top candidates to return.
+- `topk::Int=5` — Number of top candidates to return.
 
 # Returns
-- `Vector{String}`: List of the top `topk` words whose embeddings best satisfy the analogy.
+- `Vector{String}` — List of the top `topk` words whose embeddings best satisfy the analogy.
 
 # Notes
 - Cosine similarity is used to rank candidate words.
@@ -121,7 +122,7 @@ using vector arithmetic: `target = b - a + c`.
 - Embedding vectors must be non-zero; otherwise similarity is undefined.
 
 # Throws
-- `KeyError`: If any of `a`, `b`, or `c` is not in the model vocabulary.
+- `KeyError` — If any of `a`, `b`, or `c` is not in the model vocabulary.
 """
 function analogy(model::Word2VecModel, a::AbstractString, b::AbstractString, c::AbstractString; topk::Int = 5)
     # Safety checks

@@ -3,22 +3,23 @@
 """
     _plot_benchmark(results::Dict{<:Integer, T}, x_axis::AbstractString; mode::Symbol=:cbow) where {T}
 
-Plot benchmarking results for CBOW or ConEc training time.
+Plot benchmarking results for CBOW or ConEc training times.
+
+The function converts a dictionary of results into sorted vectors of keys and corresponding times,
+then plots the times versus the keys using a line plot with circular markers. The plot title and
+y-axis label are determined by the `mode`.
 
 # Arguments
-- `results::Dict{<:Integer, T}`: Mapping from an integer parameter (e.g., embedding dimension, window size, or number of epochs) to either:
-    - a numeric value representing the time in milliseconds, or
-    - a `Trial` object, in which case the minimum runtime is extracted.
+- `results::Dict{<:Integer, T}`: Maps an integer parameter (e.g., embedding dimension, window size, 
+  or number of epochs) to either:
+    - a numeric value representing time in milliseconds, or
+    - a `Trial` object, from which the minimum runtime is extracted.
 - `x_axis::AbstractString`: Label for the x-axis (e.g., `"dimension"`, `"window size"`, `"epochs"`).
-- `mode::Symbol=:cbow`: Determines plot title and y-label. Use `:cbow` for CBOW benchmarks, `:conec` for ConEc benchmarks.
-
-# Behavior
-- Converts `results` to two sorted vectors `(xs, ys)` where `xs` are the sorted keys and `ys` are the corresponding times in milliseconds.
-- Plots `ys` versus `xs` using a line with circular markers.
-- Labels the x-axis as `x_axis`, y-axis as `"Time (ms)"`, and adds a title `"CBOW benchmark: time vs x_axis"`.
+- `mode::Symbol = :cbow`: Determines plot labels and title. Use `:cbow` for CBOW benchmarks, 
+  `:conec` for ConEc benchmarks.
 
 # Returns
-- A `Plots.Plot` object.
+- `Plots.plot`: A plot of benchmarking times versus the x-axis parameter.
 """
 function _plot_benchmark(results::Dict{<:Integer, T}, x_axis::AbstractString; mode::Symbol = :cbow) where {T}
     xs = sort(collect(keys(results)))
@@ -50,9 +51,12 @@ end
 
 Benchmark a single CBOW training run using `BenchmarkTools`.
 
+Run `train_cbow` on the given `corpus` with specified hyperparameters and capture timing
+information using the `@benchmark` macro.
+
 # Arguments
-- `corpus`: Path to the training text corpus or any data structure accepted by `train_cbow`.
-- `dim::Int=50`: Embedding dimensionality.
+- `corpus`: Training corpus, either as a file path or any structure accepted by `train_cbow`.
+- `dim::Int=50`: Dimensionality of the embeddings.
 - `window::Int=2`: Context window size.
 - `epochs::Int=5`: Number of training epochs.
 - `lr::Float64=0.05`: Learning rate.
@@ -60,11 +64,11 @@ Benchmark a single CBOW training run using `BenchmarkTools`.
 - `seed::Int=42`: Random seed for reproducibility.
 
 # Returns
-- `Trial`: Object containing timing information for the CBOW training run.
+- `Trial`: BenchmarkTools `Trial` object containing execution time statistics.
 
 # Notes
-- Uses the `@benchmark` macro to capture execution time.
-- Wraps `train_cbow` with the given parameters and disables verbose output.
+- Disables verbose output during training.
+- Uses the `@benchmark` macro to measure execution time accurately.
 """
 function _benchmark_cbow(
     corpus;
@@ -90,30 +94,34 @@ end
 
 """
     _benchmark_cbow_param(corpus, values::AbstractVector{<:Int}, param::Symbol;
-                          dim=50, window=2, epochs=5, lr=0.05, min_count=1, seed=42)
+                           dim=50, window=2, epochs=5, lr=0.05, min_count=1, seed=42)
 
-Benchmark CBOW training over a range of integer values for a single hyperparameter.
+Benchmark CBOW training across a range of integer values for a single hyperparameter.
+
+Run `_benchmark_cbow` repeatedly for each value in `values`, overriding only the specified
+`param` while keeping other hyperparameters at their default or given values. Displays a
+plot of benchmark times versus the tested parameter.
 
 # Arguments
-- `corpus`: Path to the training text corpus or any input accepted by `train_cbow`.
-- `values::AbstractVector{<:Int}`: The integer values to test for the parameter.
-- `param::Symbol`: The name of the parameter to vary (e.g., `:epochs`, `:dim`, `:window`).
+- `corpus`: Training corpus, either as a file path or any input accepted by `train_cbow`.
+- `values::AbstractVector{<:Int}`: Integer values to test for the chosen hyperparameter.
+- `param::Symbol`: Name of the parameter to vary (e.g., `:epochs`, `:dim`, `:window`).
 
 # Keyword Arguments
 - `dim::Int=50`: Embedding dimensionality.
 - `window::Int=2`: Context window size.
 - `epochs::Int=5`: Number of training epochs.
 - `lr::Float64=0.05`: Learning rate.
-- `min_count::Int=1`: Minimum token frequency.
+- `min_count::Int=1`: Minimum token frequency for vocabulary inclusion.
 - `seed::Int=42`: Random seed for reproducibility.
 
 # Returns
-- `Dict{Int, Trial}`: Mapping each tested value to its corresponding benchmark trial.
+- `Dict{Int, Trial}`: Maps each tested value to its corresponding benchmark `Trial`.
 
 # Notes
-- Overrides only the parameter specified by `param`; other CBOW parameters remain at their defaults.
-- Automatically plots a benchmark figure with `results` versus the tested parameter.
-- Useful for systematically testing CBOW performance across different hyperparameter settings.
+- Only the specified `param` is overridden; all other parameters remain unchanged.
+- Automatically generates a plot of results versus the tested parameter.
+- Useful for systematically evaluating CBOW performance across different hyperparameter values.
 """
 function _benchmark_cbow_param(
     corpus,
@@ -154,21 +162,25 @@ end
 """
     benchmark_cbow_for_epochs(corpus, epochs_list::AbstractVector{<:Int}=[1,2,5,10]; kwargs...)
 
-Benchmark CBOW training across multiple epoch values.
+Benchmark CBOW training over a range of epoch values.
+
+Run `_benchmark_cbow_param` to measure CBOW training times for each value in `epochs_list`,
+while forwarding all other keyword arguments to `train_cbow`. Automatically plots training
+time versus epochs.
 
 # Arguments
-- `corpus`: Path to the training text corpus or any input accepted by `train_cbow`.
-- `epochs_list::AbstractVector{<:Int}=[1,2,5,10]`: The epoch counts to test.
+- `corpus`: Training corpus, either as a file path or any input accepted by `train_cbow`.
+- `epochs_list::AbstractVector{<:Int}=[1,2,5,10]`: Epoch counts to benchmark.
 
 # Keyword Arguments
 - All keyword arguments are forwarded to `train_cbow` (e.g., `dim`, `window`, `lr`, `min_count`, `seed`).
 
 # Returns
-- `Dict{Int, Trial}`: Mapping `epochs => trial`.
+- `Dict{Int, Trial}`: Maps each epoch count to its corresponding benchmark `Trial`.
 
 # Notes
-- Plots training time versus epochs automatically.
-- Useful for evaluating how CBOW training time scales with number of epochs.
+- Automatically generates a plot of training time versus epochs.
+- Useful for assessing how CBOW training time scales with the number of epochs.
 """
 benchmark_cbow_for_epochs(
     corpus,
@@ -180,21 +192,25 @@ benchmark_cbow_for_epochs(
 """
     benchmark_cbow_for_dim(corpus, dims::AbstractVector{<:Int}=[1,10,25,50]; kwargs...)
 
-Benchmark CBOW training across multiple embedding dimensionalities.
+Benchmark CBOW training over a range of embedding dimensionalities.
+
+Run `_benchmark_cbow_param` to measure CBOW training times for each value in `dims`,
+while forwarding all other keyword arguments to `train_cbow`. Automatically plots training
+time versus embedding dimension.
 
 # Arguments
-- `corpus`: Path to the training text corpus or any input accepted by `train_cbow`.
-- `dims::AbstractVector{<:Int}=[1,10,25,50]`: The embedding dimensions to test.
+- `corpus`: Training corpus, either as a file path or any input accepted by `train_cbow`.
+- `dims::AbstractVector{<:Int}=[1,10,25,50]`: Embedding dimensions to benchmark.
 
 # Keyword Arguments
 - All keyword arguments are forwarded to `train_cbow` (e.g., `window`, `epochs`, `lr`, `min_count`, `seed`).
 
 # Returns
-- `Dict{Int, Trial}`: Mapping `dim => trial`.
+- `Dict{Int, Trial}`: Maps each embedding dimension to its corresponding benchmark `Trial`.
 
 # Notes
-- Plots training time versus embedding dimension automatically.
-- Useful for evaluating how CBOW training time scales with embedding size.
+- Automatically generates a plot of training time versus embedding dimension.
+- Useful for assessing how CBOW training time scales with embedding size.
 """
 benchmark_cbow_for_dim(
     corpus,
@@ -206,21 +222,25 @@ benchmark_cbow_for_dim(
 """
     benchmark_cbow_for_window(corpus, windows::AbstractVector{<:Int}=[1,2,5]; kwargs...)
 
-Benchmark CBOW training across multiple context window sizes.
+Benchmark CBOW training over a range of context window sizes.
+
+Run `_benchmark_cbow_param` to measure CBOW training times for each value in `windows`,
+while forwarding all other keyword arguments to `train_cbow`. Automatically plots training
+time versus context window size.
 
 # Arguments
-- `corpus`: Path to the training text corpus or any input accepted by `train_cbow`.
-- `windows::AbstractVector{<:Int}=[1,2,5]`: The context window sizes to test.
+- `corpus`: Training corpus, either as a file path or any input accepted by `train_cbow`.
+- `windows::AbstractVector{<:Int}=[1,2,5]`: Context window sizes to benchmark.
 
 # Keyword Arguments
 - All keyword arguments are forwarded to `train_cbow` (e.g., `dim`, `epochs`, `lr`, `min_count`, `seed`).
 
 # Returns
-- `Dict{Int, Trial}`: Mapping `window => trial`.
+- `Dict{Int, Trial}`: Maps each window size to its corresponding benchmark `Trial`.
 
 # Notes
-- Plots training time versus context window size automatically.
-- Useful for evaluating how CBOW training time scales with the size of the context window.
+- Automatically generates a plot of training time versus context window size.
+- Useful for assessing how CBOW training time scales with the size of the context window.
 """
 benchmark_cbow_for_window(
     corpus,
@@ -232,16 +252,19 @@ benchmark_cbow_for_window(
 """
     SimilarityTest
 
-Represents a **qualitative similarity test** between words.
+Represent a qualitative similarity test between words.
+
+Each test asserts that the reference word `w1` is more similar to the target word `w2`
+than to any word listed in `higher_than`.
 
 # Fields
-- `w1::String` — The reference word.
-- `w2::String` — The target word that should be more similar to `w1`.
-- `higher_than::Vector{String}` — A list of words that `w2` should be more similar to than.
+- `w1::String` — Reference word.
+- `w2::String` — Target word expected to be more similar to `w1`.
+- `higher_than::Vector{String}` — Words that `w2` should be more similar to than `w1`.
 
 # Notes
-- Used in embedding evaluation to assert that `w1` is closer to `w2` than to any word in `higher_than`.
-- Typically combined with a function that computes word similarities and verifies the test.
+- Used in embedding evaluation to verify relative word similarities.
+- Typically paired with a function that computes word similarities and checks the test.
 """
 struct SimilarityTest
     w1::String
@@ -253,16 +276,19 @@ end
 """
     AnalogyTest
 
-Represents a **word analogy test** of the form `a : b ≈ c : ?`.
+Represent a word analogy test of the form `a : b ≈ c : ?`.
+
+Each test asserts that the relationship between `a` and `b` is analogous to the relationship
+between `c` and one of the words in `expected`.
 
 # Fields
-- `a::String` — The first word in the analogy pair.
-- `b::String` — The second word in the analogy pair.
-- `c::String` — The reference word for which we want to find the analogous word.
+- `a::String` — First word in the analogy pair.
+- `b::String` — Second word in the analogy pair.
+- `c::String` — Reference word for which the analogous word is sought.
 - `expected::Vector{String}` — One or more valid answers that correctly complete the analogy.
 
 # Notes
-- Used to evaluate word embeddings by testing whether vector arithmetic captures semantic or syntactic relationships.
+- Used to evaluate word embeddings by checking whether vector arithmetic captures semantic or syntactic relationships.
 - Example: if `a = "king"`, `b = "queen"`, `c = "man"`, then `expected = ["woman"]`.
 """
 struct AnalogyTest
@@ -279,26 +305,26 @@ end
         similarity_tests = SimilarityTest[],
         analogy_tests = AnalogyTest[],
         topk::Int = 5,
-    ) -> NamedTuple
+    )
 
-Evaluate the **qualitative performance** of a Word2Vec model using similarity and analogy tests.
+Evaluate the qualitative performance of a Word2Vec model using similarity and analogy tests.
 
 # Arguments
-- `model::Word2VecModel` — The trained Word2Vec model to evaluate.
-- `similarity_tests::Vector{SimilarityTest}` — A list of pairwise similarity tests. Each test checks that the similarity of `w1` and `w2` is higher than a set of other words.
-- `analogy_tests::Vector{AnalogyTest}` — A list of analogy tests of the form `a : b ≈ c : ?`. Each test may have multiple valid expected answers.
+- `model::Word2VecModel` — Trained Word2Vec model to evaluate.
+- `similarity_tests::Vector{SimilarityTest}` — List of pairwise similarity tests. Each test checks that `w1` is more similar to `w2` than to a set of other words.
+- `analogy_tests::Vector{AnalogyTest}` — List of analogy tests of the form `a : b ≈ c : ?`. Each test may have multiple valid expected answers.
 - `topk::Int=5` — Number of top predictions to consider for analogy tests.
 
 # Returns
-A `NamedTuple` with two fields: `:similarity` and `:analogy`, each containing:
+A `NamedTuple` with two fields, `:similarity` and `:analogy`, each containing:
 - `passed::Int` — Number of tests passed.
 - `total::Int` — Total number of tests.
-- `accuracy::Float64` — Fraction of tests passed.
+- `accuracy::Float64` — Fraction of tests passed (`NaN` if no tests).
 - `results::Vector{Bool}` — Individual pass/fail results for each test.
 
 # Notes
 - Any errors during evaluation are counted as failures.
-- Useful for quick, qualitative checks of embedding quality.
+- Provides a quick, qualitative check of embedding quality using user-defined similarity and analogy tests.
 """
 function benchmark_model_quality(
     model::Word2VecModel;
@@ -365,21 +391,22 @@ function benchmark_model_quality(
 end
 
 
-
-
 """
     benchmark_conec_for_window(model::ConEcModel, local_path::String, windows::AbstractVector{<:Int}=[1,2,5])
 
-Benchmark ConEc embedding computation across multiple context window sizes.
+Benchmark ConEc embedding computation across a range of context window sizes.
+
+Run `conec_embeddings_for_file` for each value in `windows` and record computation times.
+Automatically plots computation time versus window size.
 
 # Arguments
-- `model::ConEcModel`: ConEc model containing a pretrained CBOW model and global context.
-- `local_path::String`: Path to local corpus file.
-- `windows::Vector{Int}=[1,2,5]`: Context window sizes to test.
+- `model::ConEcModel` — ConEc model containing a pretrained CBOW model and global context.
+- `local_path::String` — Path to the local corpus file.
+- `windows::AbstractVector{<:Int}=[1,2,5]` — Context window sizes to benchmark.
 
 # Returns
-- `Dict{Int, Trial}`: Mapping `window size => benchmark trial`.
-- Also displays a plot of computation time vs window size.
+- `Dict{Int, Trial}` — Maps each window size to its corresponding benchmark `Trial`.
+- Displays a plot of computation time versus window size.
 """
 function benchmark_conec_for_window(model::ConEcModel, local_path::String, windows::AbstractVector{<:Int}=[1,2,5])
     results = Dict{Int, Trial}()
@@ -393,17 +420,20 @@ function benchmark_conec_for_window(model::ConEcModel, local_path::String, windo
     return results
 end
 
+
 """
     benchmark_conec_for_local_corpus_size(model::ConEcModel, local_paths::Vector{String})
 
 Benchmark ConEc embedding computation across multiple local corpora of varying sizes.
 
+Run `conec_embeddings_for_file` for each file in `local_paths` and record computation times.
+
 # Arguments
-- `model::ConEcModel`: ConEc model with pretrained CBOW and global context.
-- `local_paths::Vector{String}`: Paths to local corpus files to test.
+- `model::ConEcModel` — ConEc model with pretrained CBOW and global context.
+- `local_paths::Vector{String}` — Paths to local corpus files to benchmark.
 
 # Returns
-- `Dict{String, Trial}`: Mapping `local corpus file => benchmark trial`.
+- `Dict{String, Trial}` — Maps each local corpus file to its corresponding benchmark `Trial`.
 """
 function benchmark_conec_for_local_corpus_size(model::ConEcModel, local_paths::Vector{String})
     results = Dict{String, Trial}()
@@ -416,19 +446,23 @@ function benchmark_conec_for_local_corpus_size(model::ConEcModel, local_paths::V
     return results
 end
 
+
 """
     benchmark_conec_for_dim(models::Vector{ConEcModel}, local_path::String, dims::Vector{Int}=[50,100,200])
 
-Benchmark ConEc embedding computation for CBOW models with different embedding dimensions.
+Benchmark ConEc embedding computation for CBOW models with varying embedding dimensions.
+
+Run `conec_embeddings_for_file` for each model in `models` and record computation times.
+Automatically plots computation time versus embedding dimension.
 
 # Arguments
-- `models::Vector{ConEcModel}`: List of ConEc models trained with different CBOW dimensions.
-- `local_path::String`: Path to local corpus file.
-- `dims::Vector{Int}=[50,100,200]`: List of embedding dimensions corresponding to the models.
+- `models::Vector{ConEcModel}` — List of ConEc models trained with different CBOW dimensions.
+- `local_path::String` — Path to the local corpus file.
+- `dims::Vector{Int}=[50,100,200]` — Embedding dimensions corresponding to each model.
 
 # Returns
-- `Dict{Int, Trial}`: Mapping `embedding dimension => benchmark trial`.
-- Also displays a plot of computation time vs embedding dimension.
+- `Dict{Int, Trial}` — Maps each embedding dimension to its corresponding benchmark `Trial`.
+- Displays a plot of computation time versus embedding dimension.
 """
 function benchmark_conec_for_dim(models::Vector{ConEcModel}, local_path::String, dims::Vector{Int}=[50,100,200])
     results = Dict{Int, Trial}()
