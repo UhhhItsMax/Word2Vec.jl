@@ -60,10 +60,10 @@ function from_dict_data(embeddings_map::Dict{String,Vector{T}}) where T<:Abstrac
 	words = collect(keys(embeddings_map))
 	dim = length(first(values(embeddings_map)))
 
-	M = Array{Float64}(undef, dim, length(words))
+	M = Array{T}(undef, dim, length(words))
 
 	for (i, w) in enumerate(words)
-		M[:, i] =  convert.(Float64, embeddings_map[w])
+		M[:, i] =  convert.(T, embeddings_map[w])
 	end
 
 	return Word2VecModel(words, M)
