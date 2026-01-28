@@ -38,8 +38,8 @@ whether the file is in **text** or **binary** format.
 - Automatically wraps the loaded embeddings in a `Word2VecModel`.
 """
 function load_word2vec(path::String)
-    fmt = detect_embedding_format(path)
-    if fmt == :text
+    format = detect_embedding_format(path)
+    if format == :text
         vocab, embeddings = load_text_embeddings(path)
     else
         vocab, embeddings = load_binary_embeddings(path)
