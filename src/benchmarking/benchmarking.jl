@@ -1,9 +1,4 @@
 
-using BenchmarkTools
-using Plots
-
-export benchmark_cbow_for_dim, benchmark_cbow_for_epochs, benchmark_cbow_for_window, benchmark_model_quality, SimilarityTest, AnalogyTest, benchmark_conec_for_window, benchmark_conec_for_local_corpus_size, benchmark_conec_for_dim
-
 
 """
     _plot_benchmark(results::Dict{<:Integer, T}, x_axis::AbstractString; mode::Symbol=:cbow) where {T}
@@ -13,7 +8,7 @@ Plot benchmarking results for CBOW or ConEc training time.
 # Arguments
 - `results::Dict{<:Integer, T}`: Mapping from an integer parameter (e.g., embedding dimension, window size, or number of epochs) to either:
     - a numeric value representing the time in milliseconds, or
-    - a `BenchmarkTools.Trial` object, in which case the minimum runtime is extracted.
+    - a `Trial` object, in which case the minimum runtime is extracted.
 - `x_axis::AbstractString`: Label for the x-axis (e.g., `"dimension"`, `"window size"`, `"epochs"`).
 - `mode::Symbol=:cbow`: Determines plot title and y-label. Use `:cbow` for CBOW benchmarks, `:conec` for ConEc benchmarks.
 
@@ -30,7 +25,7 @@ function _plot_benchmark(results::Dict{<:Integer, T}, x_axis::AbstractString; mo
 
     ys = map(xs) do x
         v = results[x]
-        v isa BenchmarkTools.Trial ? minimum(v).time / 1e6 : v
+        v isa Trial ? minimum(v).time / 1e6 : v
     end
 
     title_text = mode == :cbow ? "CBOW benchmark: time vs $x_axis" :
@@ -65,7 +60,7 @@ Benchmark a single CBOW training run using `BenchmarkTools`.
 - `seed::Int=42`: Random seed for reproducibility.
 
 # Returns
-- `BenchmarkTools.Trial`: Object containing timing information for the CBOW training run.
+- `Trial`: Object containing timing information for the CBOW training run.
 
 # Notes
 - Uses the `@benchmark` macro to capture execution time.
@@ -113,7 +108,7 @@ Benchmark CBOW training over a range of integer values for a single hyperparamet
 - `seed::Int=42`: Random seed for reproducibility.
 
 # Returns
-- `Dict{Int, BenchmarkTools.Trial}`: Mapping each tested value to its corresponding benchmark trial.
+- `Dict{Int, Trial}`: Mapping each tested value to its corresponding benchmark trial.
 
 # Notes
 - Overrides only the parameter specified by `param`; other CBOW parameters remain at their defaults.
@@ -131,7 +126,7 @@ function _benchmark_cbow_param(
     min_count::Int = 1,
     seed::Int = 42,
 )
-    results = Dict{Int, BenchmarkTools.Trial}()
+    results = Dict{Int, Trial}()
 
     for v in values
         @info "Benchmarking CBOW ($param = $v)"
@@ -169,7 +164,7 @@ Benchmark CBOW training across multiple epoch values.
 - All keyword arguments are forwarded to `train_cbow` (e.g., `dim`, `window`, `lr`, `min_count`, `seed`).
 
 # Returns
-- `Dict{Int, BenchmarkTools.Trial}`: Mapping `epochs => trial`.
+- `Dict{Int, Trial}`: Mapping `epochs => trial`.
 
 # Notes
 - Plots training time versus epochs automatically.
@@ -195,7 +190,7 @@ Benchmark CBOW training across multiple embedding dimensionalities.
 - All keyword arguments are forwarded to `train_cbow` (e.g., `window`, `epochs`, `lr`, `min_count`, `seed`).
 
 # Returns
-- `Dict{Int, BenchmarkTools.Trial}`: Mapping `dim => trial`.
+- `Dict{Int, Trial}`: Mapping `dim => trial`.
 
 # Notes
 - Plots training time versus embedding dimension automatically.
@@ -221,7 +216,7 @@ Benchmark CBOW training across multiple context window sizes.
 - All keyword arguments are forwarded to `train_cbow` (e.g., `dim`, `epochs`, `lr`, `min_count`, `seed`).
 
 # Returns
-- `Dict{Int, BenchmarkTools.Trial}`: Mapping `window => trial`.
+- `Dict{Int, Trial}`: Mapping `window => trial`.
 
 # Notes
 - Plots training time versus context window size automatically.
@@ -383,11 +378,11 @@ Benchmark ConEc embedding computation across multiple context window sizes.
 - `windows::Vector{Int}=[1,2,5]`: Context window sizes to test.
 
 # Returns
-- `Dict{Int, BenchmarkTools.Trial}`: Mapping `window size => benchmark trial`.
+- `Dict{Int, Trial}`: Mapping `window size => benchmark trial`.
 - Also displays a plot of computation time vs window size.
 """
 function benchmark_conec_for_window(model::ConEcModel, local_path::String, windows::AbstractVector{<:Int}=[1,2,5])
-    results = Dict{Int, BenchmarkTools.Trial}()
+    results = Dict{Int, Trial}()
 
     for w in windows
         @info "Benchmarking ConEc (window = $w)"
@@ -408,10 +403,10 @@ Benchmark ConEc embedding computation across multiple local corpora of varying s
 - `local_paths::Vector{String}`: Paths to local corpus files to test.
 
 # Returns
-- `Dict{String, BenchmarkTools.Trial}`: Mapping `local corpus file => benchmark trial`.
+- `Dict{String, Trial}`: Mapping `local corpus file => benchmark trial`.
 """
 function benchmark_conec_for_local_corpus_size(model::ConEcModel, local_paths::Vector{String})
-    results = Dict{String, BenchmarkTools.Trial}()
+    results = Dict{String, Trial}()
 
     for path in local_paths
         @info "Benchmarking ConEc on corpus: $path"
@@ -432,11 +427,11 @@ Benchmark ConEc embedding computation for CBOW models with different embedding d
 - `dims::Vector{Int}=[50,100,200]`: List of embedding dimensions corresponding to the models.
 
 # Returns
-- `Dict{Int, BenchmarkTools.Trial}`: Mapping `embedding dimension => benchmark trial`.
+- `Dict{Int, Trial}`: Mapping `embedding dimension => benchmark trial`.
 - Also displays a plot of computation time vs embedding dimension.
 """
 function benchmark_conec_for_dim(models::Vector{ConEcModel}, local_path::String, dims::Vector{Int}=[50,100,200])
-    results = Dict{Int, BenchmarkTools.Trial}()
+    results = Dict{Int, Trial}()
 
     for (model, dim) in zip(models, dims)
         @info "Benchmarking ConEc (dim = $dim)"

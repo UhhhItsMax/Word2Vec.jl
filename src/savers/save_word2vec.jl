@@ -20,8 +20,6 @@ text or binary Word2Vec format.
 - Base Julia (no external packages required)
 """
 
-export save_word2vec
-
 """
     save_word2vec(model::Word2VecModel, path::AbstractString; format::Symbol = :text)::AbstractString
 

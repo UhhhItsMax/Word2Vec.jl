@@ -1,4 +1,3 @@
-export l2normalize_rows!, l2normalize_rows
 
 """
     l2normalize_rows!(X) -> X

@@ -16,8 +16,6 @@ with automatic format detection.
 - Base Julia (no external packages required)
 """
 
-export load_word2vec
-
 """
     load_word2vec(path::String) -> Word2VecModel
 

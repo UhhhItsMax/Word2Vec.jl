@@ -1,15 +1,7 @@
-export embedding_points, tsne_embeddings
-
-using TSne
-using Random
-using LinearAlgebra: norm
-using Distances
-
-using Distances
 
 # i get warning, so i wrap the func here 
 const _TSNE_METRIC = SqEuclidean()
-_tsne_dist(a, b) = Distances.evaluate(_TSNE_METRIC, a, b)
+_tsne_dist(a, b) = evaluate(_TSNE_METRIC, a, b)
 
 """
     embedding_points(model::Word2VecModel; words=nothing, normalize=false) -> (X, labels)
@@ -97,9 +89,9 @@ function tsne_embeddings(
     end
 
 
-    Random.seed!(seed)
+    seed!(seed)
     rd = min(reduce_dims, size(X, 2))
-    Y = TSne.tsne(
+    Y = tsne(
         X, dims, rd, max_iter, perplexity; 
         distance=_tsne_dist,
         progress=false, 

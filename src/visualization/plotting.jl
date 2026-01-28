@@ -1,6 +1,3 @@
-export plot_tsne
-
-using Plots
 
 """
     plot_tsne(model::Word2VecModel; dims=2, words=nothing, normalize=false, seed=42,
@@ -46,11 +43,11 @@ function plot_tsne(
         perplexity=perplexity,
     )
 
-    p = Plots.scatter(Y[:, 1], Y[:, 2]; legend=false, markersize=markersize, kwargs...)
+    p = scatter(Y[:, 1], Y[:, 2]; legend=false, markersize=markersize, kwargs...)
 
     if annotate
         for i in eachindex(labels)
-            Plots.annotate!(p, Y[i, 1], Y[i, 2], labels[i])
+            annotate!(p, Y[i, 1], Y[i, 2], labels[i])
         end
     end
 

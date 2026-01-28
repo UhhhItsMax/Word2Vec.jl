@@ -1,7 +1,3 @@
-using SparseArrays: SparseMatrixCSC, sparse, spzeros, nzrange, rowvals, nonzeros, nnz
-
-export ConEcModel, conec_embeddings_for_file
-
 
 """
     ConEcModel

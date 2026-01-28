@@ -1,8 +1,8 @@
-using Test
-using Word2Vec
-using Plots
+using Test: @testset, @test 
+using Word2Vec: Word2VecModel, plot_tsne
+using Plots: Plot
 
-function _series_attr(p::Plots.Plot, key::Symbol, default=nothing)
+function _series_attr(p::Plot, key::Symbol, default=nothing)
     if hasproperty(p, :series_list) && !isempty(p.series_list)
         s = p.series_list[1]
         if hasproperty(s, :plotattributes)
@@ -12,7 +12,7 @@ function _series_attr(p::Plots.Plot, key::Symbol, default=nothing)
     return default
 end
 
-function _subplot_attr(p::Plots.Plot, key::Symbol, default=nothing)
+function _subplot_attr(p::Plot, key::Symbol, default=nothing)
     if hasproperty(p, :subplots) && !isempty(p.subplots)
         sp = p.subplots[1]
         if hasproperty(sp, :attr)
@@ -27,9 +27,9 @@ end
     E = randn(8, length(vocab))
     m = Word2VecModel(vocab, E)
 
-    @testset "returns a Plots.Plot" begin
+    @testset "returns a Plot" begin
         p = plot_tsne(m; words=vocab, max_iter=250, perplexity=3, reduce_dims=5)
-        @test p isa Plots.Plot
+        @test p isa Plot
     end
 
     @testset "throws for dims != 2 (fast path)" begin
