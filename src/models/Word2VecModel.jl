@@ -10,26 +10,26 @@ Fields:
 - vector_norms::Vector{Float64} 	norms of embedding vectors
 - word_to_index::Dict{String,Int}  	maps words to column indices
 """
-struct Word2VecModel
-	vocab::Vector{String}
-	embeddings::Matrix{Float64}
-	vector_norms::Vector{Float64}
-	word_to_index::Dict{String,Int}
+struct Word2VecModel{T<:Real}
+    vocab::Vector{String}
+    embeddings::Matrix{T}
+    vector_norms::Vector{T}
+    word_to_index::Dict{String,Int}
+end
 
-	function Word2VecModel(vocab::Vector{String}, embeddings::Matrix{Float64})
-		size(embeddings, 2) == length(vocab) || throw(ArgumentError("embeddings must have one column per vocab entry"))
+function Word2VecModel(vocab::Vector{String}, embeddings::Matrix{T}) where {T<:Real}
+    size(embeddings, 2) == length(vocab) || throw(ArgumentError("embeddings must have one column per vocab entry"))
 
-		word_to_index = Dict(word => idx for (idx, word) in enumerate(vocab))
-		vector_norms = Vector{Float64}(undef, size(embeddings, 2))
+    word_to_index = Dict(word => idx for (idx, word) in enumerate(vocab))
+    vector_norms = Vector{T}(undef, size(embeddings, 2))
 
-		@inbounds for (j, col) in enumerate(eachcol(embeddings))
-			n = norm(col)
-			n == 0 && throw(ArgumentError("embedding vector has zero norm for word $(vocab[j])"))
-			vector_norms[j] = convert(Float64, n)
-		end
+    @inbounds for (j, col) in enumerate(eachcol(embeddings))
+        n = norm(col)
+        iszero(n) && throw(ArgumentError("embedding vector has zero norm for word $(vocab[j])"))
+        vector_norms[j] = convert(T, n)
+    end
 
-		return new(vocab, embeddings, vector_norms, word_to_index)
-	end
+    return Word2VecModel{T}(vocab, embeddings, vector_norms, word_to_index)
 end
 
 

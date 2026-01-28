@@ -45,7 +45,7 @@ function SparseContextMatrix(
     path::AbstractString;
     window_size::Int = 5,
     min_count::Int = 1,
-)::SparseContextMatrix{Float64}
+)::SparseContextMatrix
     token_counts = get_occurence_counts(path)
     vocab, token_to_id = filter_vocabulary(token_counts, min_count)
     token_coocs = get_co_occurence_counts(path, token_to_id, window_size)
@@ -137,15 +137,19 @@ function normalize_coocs(
     token_to_id::Dict{String, Int},
 )::Dict{Tuple{Int, Int}, Float64}
     vocab_size = length(token_to_id)
+
     inv_target_counts = Vector{Float64}(undef, vocab_size)
     for (tok, id) in token_to_id
         inv_target_counts[id] = 1.0 / token_counts[tok]
     end
+
     normalized_coocs = Dict{Tuple{Int, Int}, Float64}()
     sizehint!(normalized_coocs, length(token_coocs))
+
     for ((cooc, target), v) in token_coocs
         normalized_coocs[(cooc, target)] = v * inv_target_counts[target]
     end
+
     return normalized_coocs
 end
 

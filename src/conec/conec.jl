@@ -23,7 +23,7 @@ Holds all information needed to compute **ConEc embeddings** using a combination
 """
 struct ConEcModel
     w2v::Word2VecModel
-    global_cm::SparseContextMatrix{Float64}
+    global_cm::SparseContextMatrix
     a::Float64
 
     """
@@ -89,19 +89,19 @@ Compute a sparse context vector for a single `word` in the Word2Vec vocabulary s
 """
 function _context_vector_for_word(
     word::String,
-    scm::SparseContextMatrix{Float64},
+    scm::SparseContextMatrix{T},
     w2v_word_to_idx::Dict{String,Int},
     V::Int,
-)::SparseMatrixCSC{Float64,Int}
+)::SparseMatrixCSC{T,Int} where {T<:Real}
     col_idx = get(scm.token_to_id, word, nothing)
-    col_idx === nothing && return spzeros(Float64, V, 1)
+    col_idx === nothing && return spzeros(T, V, 1)
     
     col = scm.mat[:, col_idx]
     nnz_col = nnz(col)
-    nnz_col == 0 && return spzeros(Float64, V, 1)
+    nnz_col == 0 && return spzeros(T, V, 1)
 
     rows_w2v = Vector{Int}(undef, nnz_col)
-    vals     = Vector{Float64}(undef, nnz_col)
+    vals     = Vector{T}(undef, nnz_col)
     count = 0
 
     @inbounds for k in nzrange(col, 1)
@@ -116,7 +116,7 @@ function _context_vector_for_word(
         vals[count]     = v
     end
 
-    count == 0 && return spzeros(Float64, V, 1)
+    count == 0 && return spzeros(T, V, 1)
 
     return sparse(rows_w2v[1:count], ones(Int, count), vals[1:count], V, 1)
 end
