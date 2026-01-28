@@ -1,6 +1,3 @@
-
-
-
 """
     CircularBuffer{T}
 

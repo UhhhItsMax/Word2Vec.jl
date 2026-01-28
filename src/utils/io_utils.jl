@@ -1,4 +1,3 @@
-
 """
     read_wordlist(path::AbstractString)
 

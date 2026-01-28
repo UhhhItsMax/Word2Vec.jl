@@ -1,30 +1,4 @@
 """
-    Word2VecEvaluation
-
-A Julia file providing evaluation utilities for Word2Vec models.
-
-# Features
-- Computes **cosine similarity** between words (`similarity`) or arbitrary vectors (`cosine_similarity`).
-- Performs **word analogy queries** (`analogy`) using vector arithmetic.
-- Safety checks ensure words exist in the model vocabulary.
-- Handles zero vectors gracefully, raising informative errors.
-
-# Included Functions
-- `cosine_similarity(v1, v2)` — Computes cosine similarity between two numeric vectors.
-- `similarity(model, w1, w2)` — Computes cosine similarity between two words in a Word2Vec model.
-- `analogy(model, a, b, c; topk)` — Solves analogies of the form `a : b ≈ c : ?`.
-
-# Notes
-- All functions use `Float64` output for similarity scores.
-- Analogy computation excludes the input words from the results.
-- Designed for **in-memory Word2VecModel instances**.
-
-# Dependencies
-- Base Julia
-- `LinearAlgebra` (for `norm` and `dot`)
-"""
-
-"""
     cosine_similarity(v1::AbstractVector{<:Real}, v2::AbstractVector{<:Real})
 
 Compute the **cosine similarity** between two vectors.

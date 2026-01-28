@@ -1,4 +1,3 @@
-
 """
     plot_tsne(model::Word2VecModel; dims=2, words=nothing, normalize=false, seed=42,
               reduce_dims=50, max_iter=1000, perplexity=30,

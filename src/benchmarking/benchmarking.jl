@@ -1,5 +1,3 @@
-
-
 """
     _plot_benchmark(results::Dict{<:Integer, T}, x_axis::AbstractString; mode::Symbol=:cbow) where {T}
 

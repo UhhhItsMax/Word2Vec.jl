@@ -1,4 +1,3 @@
-
 """
     l2normalize_rows(X)
 

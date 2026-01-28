@@ -1,4 +1,3 @@
-
 """
     SparseContextMatrix{T<:Real}
 

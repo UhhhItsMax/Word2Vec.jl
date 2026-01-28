@@ -1,4 +1,3 @@
-
 """
     train_cbow(corpus; dim=50, window=2, epochs=5, lr=0.05, min_count=1, seed=42, verbose=false)
 

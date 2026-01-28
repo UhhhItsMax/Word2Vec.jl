@@ -1,22 +1,4 @@
 """
-    Word2VecLoader
-
-A Julia module for loading Word2Vec embeddings from text or binary files,
-with automatic format detection.
-
-# Features
-- Detects whether a file is in text or binary Word2Vec format.
-- Loads embeddings into a vocab vector and a embedding matrix mapping words to vectors.
-- Handles optional header lines in text files.
-- Supports Gensim's hybrid binary format (text header + binary vectors).
-- Provides a unified `load_word2vec` function.
-- Safe parsing with error handling for malformed files.
-
-# Dependencies
-- Base Julia (no external packages required)
-"""
-
-"""
     load_word2vec(path::String)
 
 Load a Word2Vec embedding model from a file, automatically detecting

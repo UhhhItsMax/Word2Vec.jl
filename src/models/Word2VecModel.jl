@@ -1,4 +1,3 @@
-
 """
     Word2VecModel
 
