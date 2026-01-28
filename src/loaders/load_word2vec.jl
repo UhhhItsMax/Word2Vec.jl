@@ -37,7 +37,7 @@ whether the file is in **text** or **binary** format.
 - Large models may require substantial RAM.
 - Automatically wraps the loaded embeddings in a `Word2VecModel`.
 """
-function load_word2vec(path::String)::Word2VecModel
+function load_word2vec(path::String)
     fmt = detect_embedding_format(path)
     if fmt == :text
         vocab, embeddings = load_text_embeddings(path)
@@ -68,7 +68,7 @@ Heuristically detects whether a Word2Vec embedding file is in text or binary for
   following tokens resemble floating-point numbers.
 - Only a small prefix of the file is scanned to avoid loading large files into memory.
 """
-function detect_embedding_format(path::AbstractString)::Symbol
+function detect_embedding_format(path::AbstractString)
     fmt::Symbol = :binary  # default assumption
 
     open(path, "r") do io

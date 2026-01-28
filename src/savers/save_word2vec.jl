@@ -46,7 +46,7 @@ Saves a `Word2VecModel` to disk in Word2Vec-compatible text or binary format.
 # Throws
 - `ArgumentError`: If `format` is not one of `:text` or `:binary`.
 """
-function save_word2vec(model::Word2VecModel, path::AbstractString; format::Symbol = :text)::AbstractString
+function save_word2vec(model::Word2VecModel, path::AbstractString; format::Symbol = :text)
     format === :text   && return _save_word2vec_text(model, path)
     format === :binary && return _save_word2vec_binary(model, path)
 
@@ -74,7 +74,7 @@ Saves a `Word2VecModel` to disk in the standard Word2Vec **text** format.
 - Existing files at `path` will be overwritten.
 - The entire model is written sequentially; no compression is applied.
 """
-function _save_word2vec_text(model::Word2VecModel, path::AbstractString)::AbstractString
+function _save_word2vec_text(model::Word2VecModel, path::AbstractString)
     vocab_size = length(model.vocab)
     dim = size(model.embeddings, 1)
 
@@ -116,7 +116,7 @@ Saves a `Word2VecModel` to disk in the classic Word2Vec **binary** format.
 - The entire model is written sequentially and no compression is applied.
 - Existing files at `path` will be overwritten.
 """
-function _save_word2vec_binary(model::Word2VecModel, path::AbstractString)::AbstractString
+function _save_word2vec_binary(model::Word2VecModel, path::AbstractString)
     vocab_size = length(model.vocab)
     dim = size(model.embeddings, 1)
 

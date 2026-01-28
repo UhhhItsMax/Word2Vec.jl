@@ -45,7 +45,7 @@ function SparseContextMatrix(
     path::AbstractString;
     window_size::Int = 5,
     min_count::Int = 1,
-)::SparseContextMatrix
+)
     token_counts = get_occurence_counts(path)
     vocab, token_to_id = filter_vocabulary(token_counts, min_count)
     token_coocs = get_co_occurence_counts(path, token_to_id, window_size)
@@ -102,7 +102,7 @@ Load a previously saved `SparseContextMatrix` from disk.
 - Raises an error if the file does not exist or is not a valid `SparseContextMatrix`.
 - Typically used to reload global or local context matrices for ConEc or other co-occurrence-based models.
 """
-function load_sparse_context_matrix(path::AbstractString)::SparseContextMatrix
+function load_sparse_context_matrix(path::AbstractString)
     open(path, "r") do io
         return deserialize(io)
     end
@@ -135,7 +135,7 @@ function normalize_coocs(
     token_coocs::Dict{Tuple{Int, Int}, Int},
     token_counts::Dict{String, Int},
     token_to_id::Dict{String, Int},
-)::Dict{Tuple{Int, Int}, Float64}
+)
     vocab_size = length(token_to_id)
 
     inv_target_counts = Vector{Float64}(undef, vocab_size)
@@ -190,7 +190,7 @@ Count the occurrences of each token in a text file.
   leading/trailing non-alphanumeric characters).
 - Empty tokens are ignored.
 """
-function get_occurence_counts(path::AbstractString)::Dict{String, Int}
+function get_occurence_counts(path::AbstractString)
     token_counts = Dict{String, Int}()
     open(path, "r") do io
         for line in eachline(io)
@@ -226,7 +226,7 @@ Filter tokens by minimum occurrence and construct a token-to-index mapping.
 - `ArgumentError` if `min_count < 1`.
 - `ArgumentError` if the resulting vocabulary is empty.
 """
-function filter_vocabulary(token_counts::Dict{String, Int}, min_count::Int)::Tuple{Vector{String}, Dict{String, Int}}
+function filter_vocabulary(token_counts::Dict{String, Int}, min_count::Int)
     min_count < 1 && throw(ArgumentError("min_count must be ≥ 1"))
 
     vocab = sort([tok for (tok, count) in token_counts if count >= min_count])
@@ -263,7 +263,7 @@ function get_co_occurence_counts(
     path::AbstractString, 
     token_to_id::Dict{String, Int}, 
     window_size::Int
-)::Dict{Tuple{Int, Int}, Int}
+)
     window_size ≥ 1 || throw(ArgumentError("window_size must be ≥ 1"))
 
     token_coocs = Dict{Tuple{Int, Int}, Int}()
@@ -311,7 +311,7 @@ Convert a dictionary of co-occurrence counts into a sparse square matrix of size
 # Throws
 - `ArgumentError` if any row or column index in `coocs` is greater than `n`.
 """
-function dict_to_sparse(coocs::Dict{Tuple{Int, Int}, T}, n::Int)::SparseMatrixCSC{T, Int} where {T}
+function dict_to_sparse(coocs::Dict{Tuple{Int, Int}, T}, n::Int) where {T}
     nnz = length(coocs)
     rows = Vector{Int}(undef, nnz)
     cols = Vector{Int}(undef, nnz)

@@ -43,7 +43,7 @@ Computes the **cosine similarity** between two vectors.
 - Cosine similarity is defined as `dot(v1, v2) / (norm(v1) * norm(v2))`.
 - Works with any numeric vector type (`Float32`, `Float64`, `Int`, etc.), but output is always `Float64`.
 """
-function cosine_similarity(v1::AbstractVector{<:Real}, v2::AbstractVector{<:Real}) :: Float64
+function cosine_similarity(v1::AbstractVector{<:Real}, v2::AbstractVector{<:Real})
     n1 = norm(v1)
     n2 = norm(v2)
     n1 == 0.0 && throw(ArgumentError("v1 is a zero vector, cosine similarity undefined"))
@@ -73,7 +73,7 @@ Compute the **cosine similarity** between two words in a Word2Vec model.
 # Throws
 - `KeyError`: If either `w1` or `w2` is not in the model vocabulary.
 """
-function similarity(model::Word2VecModel, w1::AbstractString, w2::AbstractString) :: Float64
+function similarity(model::Word2VecModel, w1::AbstractString, w2::AbstractString)
     # Check words exist
     haskey(model.word_to_index, w1) ||
         throw(KeyError("Word '$w1' not found in Word2Vec model"))

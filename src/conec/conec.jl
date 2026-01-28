@@ -92,7 +92,7 @@ function _context_vector_for_word(
     scm::SparseContextMatrix{T},
     w2v_word_to_idx::Dict{String,Int},
     V::Int,
-)::SparseMatrixCSC{T,Int} where {T<:Real}
+) where {T<:Real}
     col_idx = get(scm.token_to_id, word, nothing)
     col_idx === nothing && return spzeros(T, V, 1)
     
@@ -163,7 +163,7 @@ function conec_embeddings_for_file(
     local_path::AbstractString;
     window_size::Int = 5,
     min_count::Int = 1,
-)::Dict{String, Vector{Float64}}
+)
     # build local context
     local_cm = SparseContextMatrix(local_path; window_size=window_size, min_count=min_count)
     isempty(local_cm.vocab) && return Dict{String, Vector{Float64}}()

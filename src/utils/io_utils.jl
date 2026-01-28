@@ -37,7 +37,7 @@ function clean_line(line::AbstractString;
     lowercase::Bool=true,
     strip_punct::Bool=true,
     dash_rule::Bool=true
-)::Union{String,Nothing}
+)
     s = strip(String(line))
     isempty(s) && return nothing
 
