@@ -1,4 +1,4 @@
-using Test
+using Test: @test, @testset 
 using Word2Vec: center_rows!, center_rows, l2normalize_rows!, l2normalize_rows
 using LinearAlgebra: norm
 
