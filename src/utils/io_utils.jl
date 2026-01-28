@@ -70,7 +70,7 @@ Read a corpus file where each line is treated as a sentence.
 
 Each non-empty cleaned line becomes `split(cleaned_line)` and is appended as a sentence.
 This preserves sentence boundaries so context windows do not cross sentences.
-Keyword arguments are forwarded to [`clean_line`](@ref).
+Keyword arguments are forwarded to `clean_line`.
 """
 function read_corpus_sentences(path::AbstractString; kwargs...)
     isfile(path) || throw(ArgumentError("corpus file does not exist: $path"))
@@ -91,7 +91,7 @@ end
 
 Read a corpus file and return a single flat token stream (`Vector{String}`).
 
-This reads line-by-line, cleans each line with [`clean_line`](@ref), splits into tokens,
+This reads line-by-line, cleans each line with `clean_line`, splits into tokens,
 and concatenates all tokens into one vector (sentence boundaries are ignored).
 """
 function read_corpus_tokens(path::AbstractString; kwargs...)
