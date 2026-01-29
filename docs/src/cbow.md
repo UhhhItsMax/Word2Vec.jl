@@ -16,7 +16,8 @@ train_cbow
 
 For an example corpus:
 
-```julia
+```@example
+using Word2Vec # hide
 # Example corpus (sentences or flat token stream)
 sentences = [["the", "quick", "brown", "fox"],
              ["fox", "jumps", "over", "the", "lazy", "dog"]]

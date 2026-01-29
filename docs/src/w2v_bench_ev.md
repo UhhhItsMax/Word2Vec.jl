@@ -14,7 +14,11 @@ You can compute the cosine similarity between two words in a trained Word2Vec mo
 
 #### Example
 
-```julia
+```@example
+using Word2Vec # hide
+vocab = ["king", "queen", "man", "woman"] # hide
+emb = randn(5, 4) # hide
+model = Word2VecModel(vocab, emb) # hide
 sim_score = similarity(model, "king", "queen")
 println("Cosine similarity king ↔ queen: ", sim_score)
 ```
@@ -31,10 +35,14 @@ The `analogy` function allows you to solve word analogies using a trained Word2V
 
 #### Example
 
-```julia
+```@example
+using Word2Vec # hide
+vocab = ["king", "queen", "man", "woman"] # hide
+emb = randn(5, 4) # hide
+model = Word2VecModel(vocab, emb) # hide
 # Predict "queen" given king : man :: ? : woman
-preds = analogy(model, "king", "man", "woman"; topk=3)
-println(preds)  # e.g., ["queen", "princess", "monarch"]
+preds = analogy(model, "king", "man", "woman"; topk=1)
+println(preds)
 ```
 
 #### Notes

@@ -16,18 +16,20 @@ You can construct a Word2VecModel from:
 
 ### Separate vocab and embedding matrix:
 
-```julia
-vocab = [“king”, “queen”, “man”, “woman”]
+```@example
+using Word2Vec # hide
+vocab = ["king", "queen", "man", "woman"]
 emb = randn(5, 4)
 model = Word2VecModel(vocab, emb)
 ```
 
 ### From a dictionary of word => vector mappings:
 
-```julia
+```@example
+using Word2Vec # hide
 emb_map = Dict(
-“king” => [0.1, 0.2, 0.3, 0.4, 0.5],
-“queen” => [0.2, 0.1, 0.4, 0.3, 0.0]
+"king" => [0.1, 0.2, 0.3, 0.4, 0.5],
+"queen" => [0.2, 0.1, 0.4, 0.3, 0.0]
 )
 model = from_dict_data(emb_map)
 ```
@@ -40,14 +42,22 @@ See Model I/O
 
 ### Embedding vector
 
-```julia
-vec = get_embedding(model, “king”)
+```@example
+using Word2Vec # hide
+vocab = ["king", "queen", "man", "woman"] # hide
+emb = randn(5, 4) # hide
+model = Word2VecModel(vocab, emb) # hide
+vec = get_embedding(model, "king")
 ```
 
 ### Norm of embedding vector
 
-```julia
-norm = get_embedding_norm(model, “queen”)
+```@example
+using Word2Vec # hide
+vocab = ["king", "queen", "man", "woman"] # hide
+emb = randn(5, 4) # hide
+model = Word2VecModel(vocab, emb) # hide
+norm = get_embedding_norm(model, "queen")
 ```
 
 ## Notes
