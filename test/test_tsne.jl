@@ -1,5 +1,6 @@
-using Test
-using Word2Vec
+using Test: @testset, @test
+using Word2Vec: Word2VecModel, embedding_points, tsne_embeddings
+using LinearAlgebra: norm
 
 @testset "Visualization - embedding_points" begin
     vocab = ["a", "b", "c"]

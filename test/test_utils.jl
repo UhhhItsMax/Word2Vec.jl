@@ -1,5 +1,5 @@
-using Test
-using Word2Vec
+using Test: @test, @testset 
+using Word2Vec: center_rows!, center_rows, l2normalize_rows!, l2normalize_rows
 using LinearAlgebra: norm
 
 @testset "utils - math_utils (center_rows)" begin

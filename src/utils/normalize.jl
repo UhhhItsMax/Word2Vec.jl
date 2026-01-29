@@ -1,34 +1,42 @@
-export l2normalize_rows!, l2normalize_rows
-
 """
-    l2normalize_rows!(X) -> X
+    l2normalize_rows(X)
 
-In-place L2-normalization of each row of `X`.
+Return a **row-wise L2-normalized copy** of the input matrix `X`.
 
-After normalization, each row `X[i, :]` has Euclidean norm 1 (unless it was all zeros,
-in which case the row is left unchanged).
+# Arguments
+- `X::AbstractMatrix{<:Real}`: Input matrix with rows as vectors to normalize.
 
+# Returns
+- `Matrix{Float64}`: A new matrix where each row has Euclidean norm 1 (rows of all zeros are unchanged).
+
+# Notes
+- Does **not** modify the original `X`.
+- Internally converts `X` to `Float64` and calls `l2normalize_rows!` on a copy.
 """
 function l2normalize_rows!(X::AbstractMatrix{<:Real})
-    @inbounds for i in 1:size(X, 1)
-        s = 0.0
-        for j in 1:size(X, 2)
-            v = float(X[i, j])
-            s += v*v
-        end
+    @inbounds for row in eachrow(X)
+        s = sum(float.(row).^2)
         nrm = sqrt(s)
-        if nrm > 0
-            for j in 1:size(X, 2)
-                X[i, j] = float(X[i, j]) / nrm
-            end
-        end
+        nrm > 0 && (row .= float.(row) ./ nrm)
     end
     return X
 end
 
-"""
-    l2normalize_rows(X) -> Y
 
-Return a copy of `X` with rows L2-normalized.
+"""
+    l2normalize_rows(X)
+
+Return a **row-wise L2-normalized copy** of the input matrix `X`.
+
+# Arguments
+- `X::AbstractMatrix{<:Real}`: Input matrix whose rows are to be normalized.
+
+# Returns
+- `Matrix{Float64}`: New matrix where each row has Euclidean norm 1 (rows of all zeros are unchanged).
+
+# Notes
+- The original matrix `X` is not modified.
+- Conversion to `Float64` is applied internally.
+- Uses `l2normalize_rows!` on a copy for the normalization.
 """
 l2normalize_rows(X::AbstractMatrix{<:Real}) = l2normalize_rows!(copy(float.(X)))

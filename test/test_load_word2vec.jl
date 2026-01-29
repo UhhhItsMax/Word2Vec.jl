@@ -1,5 +1,5 @@
-using Test
-using Word2Vec
+using Test: @testset, @test, @test_throws
+using Word2Vec: load_word2vec, load_binary_embeddings, load_text_embeddings, detect_embedding_format
 
 @testset "load_word2vec" begin
     
@@ -7,7 +7,7 @@ using Word2Vec
         txt_path_1 = joinpath(@__DIR__, "data", "small_model.txt")
         txt_path_2 = joinpath(@__DIR__, "data", "word2vec.txt")
 
-        model1 = Word2Vec.load_word2vec(txt_path_1)
+        model1 = load_word2vec(txt_path_1)
         @test length(model1.vocab) == 3
         @test model1.vocab[1] == "king"
         @test model1.embeddings[:, 1] == [0.1, 0.2, 0.3, 0.4, 0.5]
@@ -16,7 +16,7 @@ using Word2Vec
         @test model1.vocab[3] == "man"
         @test model1.embeddings[:, 3] == [0.0, 0.1, 0.0, 0.1, 0.0]
 
-        model2 = Word2Vec.load_word2vec(txt_path_2)
+        model2 = load_word2vec(txt_path_2)
         @test length(model2.vocab) == 12
         @test model2.vocab[1] == "system"
         @test model2.embeddings[1, 1] ≈ -0.00053622725  # Use ≈ for floating point
@@ -25,7 +25,7 @@ using Word2Vec
     @testset "normal bin model" begin
         bin_path = joinpath(@__DIR__, "data", "word2vec.bin")
 
-        model_bin = Word2Vec.load_word2vec(bin_path)
+        model_bin = load_word2vec(bin_path)
         @test length(model_bin.vocab) == 12
         @test model_bin.vocab[1] == "system"
         @test model_bin.embeddings[1, 1] ≈ Float32(-0.00053622725)  # ≈ for floats
@@ -40,16 +40,16 @@ end
         bin_path   = joinpath(@__DIR__, "data", "word2vec.bin")
         txt_path_2 = joinpath(@__DIR__, "data", "word2vec.txt")
 
-        @test Word2Vec.detect_embedding_format(txt_path_1) == :text
-        @test Word2Vec.detect_embedding_format(bin_path) == :binary
-        @test Word2Vec.detect_embedding_format(txt_path_2) == :text
+        @test detect_embedding_format(txt_path_1) == :text
+        @test detect_embedding_format(bin_path) == :binary
+        @test detect_embedding_format(txt_path_2) == :text
     end
 
     @testset "header line" begin
         mktempdir() do d
             f = joinpath(d, "header.txt")
             write(f, "3 5\nking 0.1 0.2 0.3 0.4 0.5\n")
-            @test Word2Vec.detect_embedding_format(f) == :text
+            @test detect_embedding_format(f) == :text
         end
     end
 
@@ -57,7 +57,7 @@ end
         mktempdir() do d
             f = joinpath(d, "empty_lines.txt")
             write(f, "\n\n\nqueen 1 2 3\n")
-            @test Word2Vec.detect_embedding_format(f) == :text
+            @test detect_embedding_format(f) == :text
         end
     end
 
@@ -65,7 +65,7 @@ end
         mktempdir() do d
             f = joinpath(d, "sci.txt")
             write(f, "atom 1e-3 2e+1 -3e-2\n")
-            @test Word2Vec.detect_embedding_format(f) == :text
+            @test detect_embedding_format(f) == :text
         end
     end
 
@@ -73,7 +73,7 @@ end
         mktempdir() do d
             f = joinpath(d, "digits.txt")
             write(f, "mp3player 0.1 0.2 0.3\n")
-            @test Word2Vec.detect_embedding_format(f) == :text
+            @test detect_embedding_format(f) == :text
         end
     end
 
@@ -86,7 +86,7 @@ end
             hello world
             123 abc
             """)
-            @test Word2Vec.detect_embedding_format(f) == :binary
+            @test detect_embedding_format(f) == :binary
         end
     end
 
@@ -96,7 +96,7 @@ end
             open(f, "w") do io
                 write(io, UInt8[0xFF, 0xD8, 0x00, 0xFF])
             end
-            @test Word2Vec.detect_embedding_format(f) == :binary
+            @test detect_embedding_format(f) == :binary
         end
     end
 
@@ -108,7 +108,7 @@ end
         txt_path_1 = joinpath(@__DIR__, "data", "small_model.txt")
         txt_path_2 = joinpath(@__DIR__, "data", "word2vec.txt")
     
-        vocab, emb = Word2Vec.load_text_embeddings(txt_path_1)
+        vocab, emb = load_text_embeddings(txt_path_1)
         @test length(vocab) == 3
         @test vocab[1] == "king"
         @test emb[:, 1] == [0.1, 0.2, 0.3, 0.4, 0.5]
@@ -117,7 +117,7 @@ end
         @test vocab[3] == "man"
         @test emb[:, 3] == [0.0, 0.1, 0.0, 0.1, 0.0]
 
-        vocab, emb = Word2Vec.load_text_embeddings(txt_path_2)
+        vocab, emb = load_text_embeddings(txt_path_2)
         @test length(vocab) == 12
         @test vocab[1] == "system"
         @test emb[1,1] == -0.00053622725
@@ -135,7 +135,7 @@ end
                 """)
             end
 
-            vocab, emb = Word2Vec.load_text_embeddings(f)
+            vocab, emb = load_text_embeddings(f)
 
             @test length(vocab) == 2
             @test vocab[1] == "king"
@@ -156,7 +156,7 @@ end
                 """)
             end
 
-            vocab, emb = Word2Vec.load_text_embeddings(f)
+            vocab, emb = load_text_embeddings(f)
 
             @test length(vocab) == 1
             @test vocab[1] == "king"
@@ -175,7 +175,7 @@ end
                 """)
             end
 
-            vocab, emb = Word2Vec.load_text_embeddings(f)
+            vocab, emb = load_text_embeddings(f)
 
             @test length(vocab) == 1
             @test vocab[1] == "queen"
@@ -190,7 +190,7 @@ end
                 write(io, "atom 1e-3 2e+1 -3e-2\n")
             end
 
-            vocab, emb = Word2Vec.load_text_embeddings(f)
+            vocab, emb = load_text_embeddings(f)
 
             @test vocab[1] == "atom"
             @test emb[:, 1] ≈ [1e-3, 20.0, -0.03]
@@ -204,7 +204,7 @@ end
                 write(io, "mp3player 0.1 0.2 0.3\n")
             end
 
-            vocab, emb = Word2Vec.load_text_embeddings(f)
+            vocab, emb = load_text_embeddings(f)
 
             @test length(vocab) == 1
             @test vocab[1] == "mp3player"
@@ -225,7 +225,7 @@ end
                 """)
             end
 
-            vocab, emb = Word2Vec.load_text_embeddings(f)
+            vocab, emb = load_text_embeddings(f)
 
             @test length(vocab) == 2
             @test vocab[1] == "king"
@@ -244,7 +244,7 @@ end
                 """)
             end
 
-             @test_throws ErrorException Word2Vec.load_text_embeddings(f)
+             @test_throws ErrorException load_text_embeddings(f)
 
         end
     end
@@ -256,7 +256,7 @@ end
     @testset "normal model" begin
         bin_path   = joinpath(@__DIR__, "data", "word2vec.bin")
 
-        vocab, emb = Word2Vec.load_binary_embeddings(bin_path)
+        vocab, emb = load_binary_embeddings(bin_path)
 
         @test length(vocab) == 12
         @test size(emb) == (100, 12)
@@ -283,7 +283,7 @@ end
                 write(io, Float32[0.5, 0.5])
             end
 
-            vocab, emb = Word2Vec.load_binary_embeddings(f)
+            vocab, emb = load_binary_embeddings(f)
 
             @test length(vocab) == 2
             @test vocab[1] == "word_123"
@@ -300,7 +300,7 @@ end
                 write(io, "wrong header\n")
             end
 
-            @test_throws ErrorException Word2Vec.load_binary_embeddings(f)
+            @test_throws ErrorException load_binary_embeddings(f)
         end
     end
 
@@ -311,7 +311,7 @@ end
                 write(io, "wrong header header\n")
             end
 
-            @test_throws ErrorException Word2Vec.load_binary_embeddings(f)
+            @test_throws ErrorException load_binary_embeddings(f)
         end
     end
 end

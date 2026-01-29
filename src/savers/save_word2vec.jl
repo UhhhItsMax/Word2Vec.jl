@@ -1,31 +1,7 @@
 """
-    Word2VecSaver
+    save_word2vec(model::Word2VecModel, path::AbstractString; format::Symbol = :text)
 
-A Julia module for saving `Word2VecModel` embeddings to disk in either
-text or binary Word2Vec format.
-
-# Features
-- Saves embeddings in human-readable text format (`word val1 val2 ...`).
-- Saves embeddings in the classic Word2Vec binary format (Float32 vectors).
-- Overwrites existing files safely.
-- Provides a unified `save_word2vec` function that chooses format via a keyword argument.
-- Internal helper functions `_save_word2vec_text` and `_save_word2vec_binary`
-  handle format-specific writing.
-
-# Supported Formats
-- `:text`   — Human-readable, compatible with Gensim.
-- `:binary` — Standard Word2Vec C implementation binary format, smaller and faster to load.
-
-# Dependencies
-- Base Julia (no external packages required)
-"""
-
-export save_word2vec
-
-"""
-    save_word2vec(model::Word2VecModel, path::AbstractString; format::Symbol = :text)::AbstractString
-
-Saves a `Word2VecModel` to disk in Word2Vec-compatible text or binary format.
+Save a `Word2VecModel` to disk in Word2Vec-compatible text or binary format.
 
 # Arguments
 - `model::Word2VecModel`: The Word2Vec model to save.
@@ -48,17 +24,18 @@ Saves a `Word2VecModel` to disk in Word2Vec-compatible text or binary format.
 # Throws
 - `ArgumentError`: If `format` is not one of `:text` or `:binary`.
 """
-function save_word2vec(model::Word2VecModel, path::AbstractString; format::Symbol = :text)::AbstractString
+function save_word2vec(model::Word2VecModel, path::AbstractString; format::Symbol = :text)
     format === :text   && return _save_word2vec_text(model, path)
     format === :binary && return _save_word2vec_binary(model, path)
 
     throw(ArgumentError("Unknown format $format. Use :text or :binary."))
 end
 
-"""
-    _save_word2vec_text(model::Word2VecModel, path::AbstractString)::AbstractString
 
-Saves a `Word2VecModel` to disk in the standard Word2Vec **text** format.
+"""
+    _save_word2vec_text(model::Word2VecModel, path::AbstractString)
+
+Save a `Word2VecModel` to disk in the standard Word2Vec **text** format.
 
 # Arguments
 - `model::Word2VecModel`: The Word2Vec model to be saved.
@@ -76,7 +53,7 @@ Saves a `Word2VecModel` to disk in the standard Word2Vec **text** format.
 - Existing files at `path` will be overwritten.
 - The entire model is written sequentially; no compression is applied.
 """
-function _save_word2vec_text(model::Word2VecModel, path::AbstractString)::AbstractString
+function _save_word2vec_text(model::Word2VecModel, path::AbstractString)
     vocab_size = length(model.vocab)
     dim = size(model.embeddings, 1)
 
@@ -94,10 +71,11 @@ function _save_word2vec_text(model::Word2VecModel, path::AbstractString)::Abstra
     return path
 end
 
-"""
-    _save_word2vec_binary(model::Word2VecModel, path::AbstractString)::AbstractString
 
-Saves a `Word2VecModel` to disk in the classic Word2Vec **binary** format.
+"""
+    _save_word2vec_binary(model::Word2VecModel, path::AbstractString)
+
+Save a `Word2VecModel` to disk in the classic Word2Vec **binary** format.
 
 # Arguments
 - `model::Word2VecModel`: The Word2Vec model to be saved.
@@ -118,7 +96,7 @@ Saves a `Word2VecModel` to disk in the classic Word2Vec **binary** format.
 - The entire model is written sequentially and no compression is applied.
 - Existing files at `path` will be overwritten.
 """
-function _save_word2vec_binary(model::Word2VecModel, path::AbstractString)::AbstractString
+function _save_word2vec_binary(model::Word2VecModel, path::AbstractString)
     vocab_size = length(model.vocab)
     dim = size(model.embeddings, 1)
 
@@ -132,7 +110,7 @@ function _save_word2vec_binary(model::Word2VecModel, path::AbstractString)::Abst
             write(io, UInt8(0x20))  # space
 
             # Convert vector to Float32 (Word2Vec standard)
-            vec32 = Float32.(model.embeddings[:, j])
+            vec32 = convert.(Float32, model.embeddings[:, j])
             write(io, vec32)
         end
     end
