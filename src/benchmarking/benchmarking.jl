@@ -1,3 +1,4 @@
+
 """
     _plot_benchmark(results::Dict{<:Integer, T}, x_axis::AbstractString; mode::Symbol=:cbow) where {T}
 
@@ -67,6 +68,7 @@ information using the `@benchmark` macro.
 # Notes
 - Disables verbose output during training.
 - Uses the `@benchmark` macro to measure execution time accurately.
+- Uses a warmup call with the same parameters to make sure we don't JIT compile
 """
 function _benchmark_cbow(
     corpus;
@@ -77,7 +79,20 @@ function _benchmark_cbow(
     min_count::Int = 1,
     seed::Int = 42,
 )
-    @benchmark train_cbow(
+    # Warm-up (compile + cache)
+    train_cbow(
+        corpus;
+        dim = dim,
+        window = window,
+        epochs = epochs,
+        lr = lr,
+        min_count = min_count,
+        seed = seed,
+        verbose = false,
+    )
+
+    # Actual benchmark
+    return @benchmark train_cbow(
         $corpus;
         dim = $dim,
         window = $window,
