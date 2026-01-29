@@ -127,4 +127,4 @@ For more information, visit our [Documentation](https://uhhhitsmax.github.io/Wor
 
 ## License
 
-MIT (see `LICENSE`).
+MIT (see [`LICENSE`](./LICENSE)).

@@ -36,7 +36,7 @@ model = from_dict_data(emb_map)
 
 ### From loading a model
 
-See Model I/O
+See [Model I/O](./io.md)
 
 ## Accessing embeddings
 
