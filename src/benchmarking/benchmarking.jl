@@ -420,12 +420,17 @@ Automatically plots computation time versus window size.
 # Returns
 - `Dict{Int, Trial}` — Maps each window size to its corresponding benchmark `Trial`.
 - Displays a plot of computation time versus window size.
+- Uses a warmup call for better benchmarking
 """
 function benchmark_conec_for_window(model::ConEcModel, local_path::String, windows::AbstractVector{<:Int}=[1,2,5])
     results = Dict{Int, Trial}()
 
     for w in windows
         @info "Benchmarking ConEc (window = $w)"
+
+        #warmup call
+        conec_embeddings_for_file(model, local_path; window_size = w)
+
         results[w] = @benchmark conec_embeddings_for_file($model, $local_path; window_size=$w)
     end
 
@@ -447,15 +452,22 @@ Run `conec_embeddings_for_file` for each file in `local_paths` and record comput
 
 # Returns
 - `Dict{String, Trial}` — Maps each local corpus file to its corresponding benchmark `Trial`.
+- Displays a plot of computation time versus corpus size.
+- Uses a warmup call for better benchmarking
 """
 function benchmark_conec_for_local_corpus_size(model::ConEcModel, local_paths::Vector{String})
     results = Dict{String, Trial}()
 
     for path in local_paths
         @info "Benchmarking ConEc on corpus: $path"
+
+        # warmup call
+        conec_embeddings_for_file(model, path)
+
         results[path] = @benchmark conec_embeddings_for_file($model, $path)
     end
 
+    display(_plot_benchmark(results, "Path"; mode=:conec))
     return results
 end
 
@@ -476,12 +488,17 @@ Automatically plots computation time versus embedding dimension.
 # Returns
 - `Dict{Int, Trial}` — Maps each embedding dimension to its corresponding benchmark `Trial`.
 - Displays a plot of computation time versus embedding dimension.
+- Uses a warmup call for better benchmarking
 """
 function benchmark_conec_for_dim(models::Vector{ConEcModel}, local_path::String, dims::Vector{Int}=[50,100,200])
     results = Dict{Int, Trial}()
 
     for (model, dim) in zip(models, dims)
         @info "Benchmarking ConEc (dim = $dim)"
+
+        # warmup call
+        conec_embeddings_for_file(model, local_path)
+
         results[dim] = @benchmark conec_embeddings_for_file($model, $local_path)
     end
 
