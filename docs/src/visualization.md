@@ -3,6 +3,10 @@
 Visualize high-dimensional Word2Vec embeddings in 2D using **t-SNE** with [Plots.jl](https://docs.juliaplots.org/latest/).  
 `plot_tsne` supports optional word subsetting for large vocabularies and annotation of labels.
 
+```@docs
+Word2Vec.plot_tsne
+```
+
 ## Example
 
 ```julia

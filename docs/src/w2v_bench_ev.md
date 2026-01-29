@@ -136,9 +136,6 @@ window_results = benchmark_cbow_for_window(
 
 ### Notes
 
-- All benchmarking functions return a Dict{Int, BenchmarkTools.Trial} mapping the parameter value to its timing result.
+- All benchmarking functions return a `Dict{Int, BenchmarkTools.Trial}` mapping the parameter value to its timing result.
 - The functions automatically plot training time vs. the tested parameter for quick visualization.
-- _plot_benchmark extracts runtime in milliseconds from either numeric values or BenchmarkTools.Trial objects.
-- _benchmark_cbow wraps train_cbow using @benchmark to measure execution time.
-- _benchmark_cbow_param allows systematic testing of a single parameter while keeping others fixed.
 - Use these benchmarks to optimize CBOW training settings for your corpus size and hardware.

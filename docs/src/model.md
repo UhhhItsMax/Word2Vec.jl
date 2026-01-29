@@ -12,9 +12,9 @@ Word2VecModel
 
 ## Construction
 
-You can construct a Word2VecModel from:
+Ways to construct a Word2VecModel:
 
-### Separate vocab and embedding matrix:
+### From a separate vocab and embedding matrix:
 
 ```@example
 using Word2Vec # hide
@@ -23,7 +23,7 @@ emb = randn(5, 4)
 model = Word2VecModel(vocab, emb)
 ```
 
-### From a dictionary of word => vector mappings:
+### From a dictionary of word → vector mappings:
 
 ```@example
 using Word2Vec # hide
@@ -50,6 +50,8 @@ model = Word2VecModel(vocab, emb) # hide
 vec = get_embedding(model, "king")
 ```
 
+_Note:_ All embedding vectors are stored as Float64 internally, even if provided as Float32.
+
 ### Norm of embedding vector
 
 ```@example
@@ -60,8 +62,4 @@ model = Word2VecModel(vocab, emb) # hide
 norm = get_embedding_norm(model, "queen")
 ```
 
-## Notes
-
-- Norms are precomputed to speed up cosine similarity and analogy computations.
-- Construction will throw an error if any embedding vector has zero norm or if the number of columns in embeddings does not match the vocabulary size.
-- All embedding vectors are stored as Float64 internally, even if provided as Float32.
+_Note:_ Norms are precomputed to speed up cosine similarity and analogy computations. Construction will throw an error if any embedding vector has zero norm or if the number of columns in embeddings does not match the vocabulary size.
