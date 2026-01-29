@@ -16,17 +16,9 @@ Reference: [Co-occurrence Enhanced Word Embeddings (ConEc)](https://arxiv.org/ab
 
 ## ConEcModel
 
-A `ConEcModel` stores everything needed to compute ConEc embeddings:
-
-- `w2v::Word2VecModel` — Pretrained CBOW model used to map context vectors to embeddings.
-- `global_cm::SparseContextMatrix{Float64}` — Precomputed co-occurrence matrix from a large global corpus.
-- `a::Float64` — Weight for global context in the mixture (`0 ≤ a ≤ 1`).
-
-**Notes:**
-
-- Constructed via `ConEcModel(w2v, global_corpus_path; window_size=5, min_count=1, a=0.6)`.
-- `global_cm` is reusable for multiple local corpora.
-- Local embeddings are computed on-the-fly using `conec_embeddings_for_file`.
+```@docs
+ConEcModel
+```
 
 ---
 

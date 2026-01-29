@@ -6,14 +6,9 @@ CurrentModule = Word2Vec
 
 Word2VecModel is the in-memory representation of a trained Word2Vec embedding. It stores the vocabulary, embeddings, precomputed vector norms, and a mapping from words to column indices.
 
-## Structure
-
-Fields:
-
-- vocab::Vector{String} — List of words in the model.
-- embeddings::Matrix{Float64} — Column-wise embedding matrix of size (dim, vocab_size).
-- vector_norms::Vector{Float64} — Precomputed norms of embedding vectors for efficient similarity computation.
-- word_to_index::Dict{String,Int} — Maps words to column indices in embeddings.
+```@docs
+Word2VecModel
+```
 
 ## Construction
 
