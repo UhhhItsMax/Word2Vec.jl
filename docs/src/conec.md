@@ -2,13 +2,16 @@
 
 **ConEc** extends Word2Vec CBOW embeddings by combining **global context** (from a large corpus) with **local document context** to produce richer, context-aware embeddings.  
 
-The idea is: for each word \(w\),
+For each word $w$, the combined context vector is defined as
 
-c_w = α * c_w^global + (1 - α) * c_w^local  
+$c_w = \alpha \, c_w^{\text{global}} + (1 - \alpha)\, c_w^{\text{local}},$
 
-y_w = W0 * c_w  
+and the resulting embedding is obtained via
 
-where W0 is the CBOW input embedding matrix and α ∈ [0,1] balances global vs local context.
+$y_w = W_0 \, c_w,$
+
+where $W_0$ denotes the CBOW input embedding matrix and
+$\alpha \in [0,1]$ controls the balance between global and local context.
 
 Reference: [Co-occurrence Enhanced Word Embeddings (ConEc)](https://arxiv.org/abs/1706.02496)
 

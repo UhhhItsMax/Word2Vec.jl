@@ -25,7 +25,7 @@ println("Cosine similarity king ↔ queen: ", sim_score)
 
 #### Notes
 
-- Returns a Float64 in [-1.0, 1.0].
+- Returns a Float64 in $[-1.0, 1.0]$.
 - Throws a KeyError if a word is not in the vocabulary.
 - Throws ArgumentError if a vector has zero norm.
 
@@ -48,7 +48,7 @@ println(preds)
 #### Notes
 
 - Cosine similarity is used to rank candidate words.
-- Input words (a, b, c) are excluded from the results.
+- Input words $(a, b, c)$ are excluded from the results.
 - Embedding vectors must be non-zero; otherwise similarity is undefined.
 
 
@@ -85,8 +85,8 @@ println("Analogy accuracy: ", results.analogy.accuracy)
 
 #### Notes
 
-- SimilarityTest checks that w1 is more similar to w2 than to any word in higher_than.
-- AnalogyTest checks vector arithmetic predictions (a : b ≈ c : ?) and allows for multiple valid answers.
+- SimilarityTest checks that $w_{1}$ is more similar to $w_{2}$ than to any word in higher_than.
+- AnalogyTest checks vector arithmetic predictions $a : b \approx c : ?$ and allows for multiple valid answers.
 - benchmark_model_quality returns a NamedTuple containing:
     - similarity — Number of passed tests, total tests, accuracy, and individual results.
     - analogy — Same as above but for analogy tests.
