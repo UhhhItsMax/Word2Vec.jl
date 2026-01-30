@@ -55,10 +55,10 @@ end
     end
 
     @testset "options: lowercase=false / strip_punct=false / dash_rule=false" begin
-        @test clean_line("Hello WORLD"; lowercase=false) == "Hello WORLD"
-        @test clean_line("Hello, WORLD!"; strip_punct=false) == "hello, world!"
+        @test clean_line("Hello WORLD"; lowercase = false) == "Hello WORLD"
+        @test clean_line("Hello, WORLD!"; strip_punct = false) == "hello, world!"
 
-        @test clean_line("-----"; dash_rule=false) == "-----"
+        @test clean_line("-----"; dash_rule = false) == "-----"
     end
 
     @testset "strip_punct can erase content -> returns nothing" begin
@@ -83,11 +83,11 @@ end
             ["hello", "world"],
             ["this", "is", "line", "2"],
             ["room", "101"],
-            ["foo", "bar", "baz"]
+            ["foo", "bar", "baz"],
         ]
 
         toks = read_corpus_tokens(path)
-        @test toks == ["hello","world","this","is","line","2","room","101","foo","bar","baz"]
+        @test toks == ["hello", "world", "this", "is", "line", "2", "room", "101", "foo", "bar", "baz"]
     end
 
     @testset "respects forwarded kwargs (disable dash_rule)" begin
@@ -96,17 +96,17 @@ end
         sents1 = read_corpus_sentences(path)
         @test isempty(sents1)
 
-        sents2 = read_corpus_sentences(path; dash_rule=false, strip_punct=false, lowercase=false)
+        sents2 = read_corpus_sentences(path; dash_rule = false, strip_punct = false, lowercase = false)
         @test sents2 == [["---"], ["------"]]
     end
 
     @testset "respects forwarded kwargs (no punctuation stripping)" begin
         path = joinpath(_DATA, "corpus_punct.txt")
 
-        sents = read_corpus_sentences(path; strip_punct=false)
+        sents = read_corpus_sentences(path; strip_punct = false)
         @test sents == [
             ["hello,", "world!"],
-            ["a,b;c"]
+            ["a,b;c"],
         ]
     end
 end

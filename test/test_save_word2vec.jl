@@ -35,7 +35,7 @@ using Word2Vec: save_word2vec, _save_word2vec_binary, _save_word2vec_text, Word2
             @test size(emb2) == size(embeddings)
 
             # Values should match approximately (Float32 roundoff)
-            @test emb2 ≈ embeddings atol=1f-6
+            @test emb2 ≈ embeddings atol = 1.0f-6
         end
 
         @testset "binary float format" begin
@@ -90,7 +90,7 @@ end
 
         # Check embeddings
         @test size(model2.embeddings) == size(embeddings)
-        @test model2.embeddings ≈ embeddings atol=1e-8  # approximate comparison for floating points
+        @test model2.embeddings ≈ embeddings atol = 1.0e-8  # approximate comparison for floating points
     end
 
     # Test header line is correct
@@ -118,7 +118,7 @@ end
 
     txt_path_1 = joinpath(@__DIR__, "data", "small_model.txt")
     txt_path_2 = joinpath(@__DIR__, "data", "word2vec.txt")
-    bin_path   = joinpath(@__DIR__, "data", "word2vec.bin")
+    bin_path = joinpath(@__DIR__, "data", "word2vec.bin")
 
     @testset "round-trip text1 save/load" begin
         mktempdir() do d
@@ -127,7 +127,7 @@ end
 
             # Save to new temporary file in text format
             out_file = joinpath(d, "model.txt")
-            save_word2vec(model, out_file; format=:text)
+            save_word2vec(model, out_file; format = :text)
 
             # Reload
             model2 = load_word2vec(out_file)
@@ -144,7 +144,7 @@ end
 
             # Save to new temporary file in text format
             out_file = joinpath(d, "model.txt")
-            save_word2vec(model, out_file; format=:text)
+            save_word2vec(model, out_file; format = :text)
 
             # Reload
             model2 = load_word2vec(out_file)
@@ -162,7 +162,7 @@ end
 
             # Save to new temporary file in binary format
             out_file = joinpath(d, "model.bin")
-            save_word2vec(model, out_file; format=:binary)
+            save_word2vec(model, out_file; format = :binary)
 
             # Reload
             model2 = load_word2vec(out_file)
@@ -177,7 +177,7 @@ end
             out_file = joinpath(d, "bad_model.xyz")
             model = load_word2vec(txt_path_2)
 
-            @test_throws ArgumentError save_word2vec(model, out_file; format=:foo)
+            @test_throws ArgumentError save_word2vec(model, out_file; format = :foo)
         end
     end
 

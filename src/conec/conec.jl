@@ -39,14 +39,18 @@ struct ConEcModel
     - Automatically builds `global_cm::SparseContextMatrix` from the provided corpus.
     - Use `conec_embeddings_for_file` to compute ConEc embeddings for arbitrary local documents.
     """
-    function ConEcModel(w2v::Word2VecModel, global_corpus_path::AbstractString;
-                        window_size::Int = 5,
-                        min_count::Int = 1,
-                        a::Float64 = 0.6)
-        global_cm = SparseContextMatrix(global_corpus_path;
-                                        window_size = window_size,
-                                        min_count   = min_count)
-        new(w2v, global_cm, a)
+    function ConEcModel(
+            w2v::Word2VecModel, global_corpus_path::AbstractString;
+            window_size::Int = 5,
+            min_count::Int = 1,
+            a::Float64 = 0.6
+        )
+        global_cm = SparseContextMatrix(
+            global_corpus_path;
+            window_size = window_size,
+            min_count = min_count
+        )
+        return new(w2v, global_cm, a)
     end
 end
 
@@ -72,20 +76,20 @@ Compute a sparse context vector for a single `word` in the Word2Vec vocabulary s
 - Intended for internal use only.
 """
 function _context_vector_for_word(
-    word::String,
-    scm::SparseContextMatrix{T},
-    w2v_word_to_idx::Dict{String,Int},
-    V::Int,
-) where {T<:Real}
+        word::String,
+        scm::SparseContextMatrix{T},
+        w2v_word_to_idx::Dict{String, Int},
+        V::Int,
+    ) where {T <: Real}
     col_idx = get(scm.token_to_id, word, nothing)
     col_idx === nothing && return spzeros(T, V, 1)
-    
+
     col = scm.mat[:, col_idx]
     nnz_col = nnz(col)
     nnz_col == 0 && return spzeros(T, V, 1)
 
     rows_w2v = Vector{Int}(undef, nnz_col)
-    vals     = Vector{T}(undef, nnz_col)
+    vals = Vector{T}(undef, nnz_col)
     count = 0
 
     @inbounds for k in nzrange(col, 1)
@@ -97,7 +101,7 @@ function _context_vector_for_word(
 
         count += 1
         rows_w2v[count] = idx_w2v
-        vals[count]     = v
+        vals[count] = v
     end
 
     count == 0 && return spzeros(T, V, 1)
@@ -135,27 +139,27 @@ Compute ConEc embeddings for all words in a local corpus file.
 - Returns an empty dictionary if no tokens in the local corpus survive `min_count`.
 """
 function conec_embeddings_for_file(
-    model::ConEcModel,
-    local_path::AbstractString;
-    window_size::Int = 5,
-    min_count::Int = 1,
-)
+        model::ConEcModel,
+        local_path::AbstractString;
+        window_size::Int = 5,
+        min_count::Int = 1,
+    )
     # build local context
-    local_cm = SparseContextMatrix(local_path; window_size=window_size, min_count=min_count)
+    local_cm = SparseContextMatrix(local_path; window_size = window_size, min_count = min_count)
     isempty(local_cm.vocab) && return Dict{String, Vector{Float64}}()
 
     V = length(model.w2v.vocab)
-    E = model.w2v.embeddings                  
+    E = model.w2v.embeddings
     w2v_word_to_idx = model.w2v.word_to_index
     a = model.a
 
     conec = Dict{String, Vector{Float64}}()
 
     for word in local_cm.vocab
-        c_local  = _context_vector_for_word(word, local_cm, w2v_word_to_idx, V)
+        c_local = _context_vector_for_word(word, local_cm, w2v_word_to_idx, V)
         c_global = _context_vector_for_word(word, model.global_cm, w2v_word_to_idx, V)
 
-        c = nnz(c_global) > 0 ? a .* c_global .+ (1-a) .* c_local : c_local
+        c = nnz(c_global) > 0 ? a .* c_global .+ (1 - a) .* c_local : c_local
         nnz(c) == 0 && continue
 
         conec[word] = vec(E * c)

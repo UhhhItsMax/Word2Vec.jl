@@ -16,7 +16,7 @@ using Word2Vec: get_co_occurence_counts, SparseContextMatrix, save_sparse_contex
     end
 
     @testset "build matrix" begin
-        cm = SparseContextMatrix(path; window_size=1, min_count=1)
+        cm = SparseContextMatrix(path; window_size = 1, min_count = 1)
         @test size(cm.mat) == (4, 4)
         @test nnz(cm.mat) == 4
         @test length(cm.vocab) == 4

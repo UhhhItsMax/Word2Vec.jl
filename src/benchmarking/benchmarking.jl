@@ -1,4 +1,3 @@
-
 """
     _plot_benchmark(results::Dict{<:Integer, T}, x_axis::AbstractString; mode::Symbol=:cbow) where {T}
 
@@ -25,14 +24,14 @@ function _plot_benchmark(results::Dict{<:Integer, T}, x_axis::AbstractString; mo
 
     ys = map(xs) do x
         v = results[x]
-        v isa Trial ? minimum(v).time / 1e6 : v
+        v isa Trial ? minimum(v).time / 1.0e6 : v
     end
 
     title_text = mode == :cbow ? "CBOW benchmark: time vs $x_axis" :
-                 mode == :conec ? "ConEc benchmark: time vs $x_axis" :
-                 "Benchmark: time vs $x_axis"
+        mode == :conec ? "ConEc benchmark: time vs $x_axis" :
+        "Benchmark: time vs $x_axis"
 
-    plot(
+    return plot(
         xs,
         ys;
         xlabel = x_axis,
@@ -71,14 +70,14 @@ information using the `@benchmark` macro.
 - Uses a warmup call with the same parameters to make sure we don't JIT compile
 """
 function _benchmark_cbow(
-    corpus;
-    dim::Int = 50,
-    window::Int = 2,
-    epochs::Int = 5,
-    lr::Float64 = 0.05,
-    min_count::Int = 1,
-    seed::Int = 42,
-)
+        corpus;
+        dim::Int = 50,
+        window::Int = 2,
+        epochs::Int = 5,
+        lr::Float64 = 0.05,
+        min_count::Int = 1,
+        seed::Int = 42,
+    )
     # Warm-up (compile + cache)
     train_cbow(
         corpus;
@@ -137,16 +136,16 @@ plot of benchmark times versus the tested parameter.
 - Useful for systematically evaluating CBOW performance across different hyperparameter values.
 """
 function _benchmark_cbow_param(
-    corpus,
-    values::AbstractVector{<:Int},
-    param::Symbol;
-    dim::Int = 50,
-    window::Int = 2,
-    epochs::Int = 5,
-    lr::Float64 = 0.05,
-    min_count::Int = 1,
-    seed::Int = 42,
-)
+        corpus,
+        values::AbstractVector{<:Int},
+        param::Symbol;
+        dim::Int = 50,
+        window::Int = 2,
+        epochs::Int = 5,
+        lr::Float64 = 0.05,
+        min_count::Int = 1,
+        seed::Int = 42,
+    )
     results = Dict{Int, Trial}()
 
     for v in values
@@ -340,11 +339,11 @@ A `NamedTuple` with two fields, `:similarity` and `:analogy`, each containing:
 - Provides a quick, qualitative check of embedding quality using user-defined similarity and analogy tests.
 """
 function benchmark_model_quality(
-    model::Word2VecModel;
-    similarity_tests::Vector{SimilarityTest} = SimilarityTest[],
-    analogy_tests::Vector{AnalogyTest} = AnalogyTest[],
-    topk::Int = 5,
-)
+        model::Word2VecModel;
+        similarity_tests::Vector{SimilarityTest} = SimilarityTest[],
+        analogy_tests::Vector{AnalogyTest} = AnalogyTest[],
+        topk::Int = 5,
+    )
     sim_pass = 0
     sim_total = length(similarity_tests)
 
@@ -422,7 +421,7 @@ Automatically plots computation time versus window size.
 - Displays a plot of computation time versus window size.
 - Uses a warmup call for better benchmarking
 """
-function benchmark_conec_for_window(model::ConEcModel, local_path::String, windows::AbstractVector{<:Int}=[1,2,5])
+function benchmark_conec_for_window(model::ConEcModel, local_path::String, windows::AbstractVector{<:Int} = [1, 2, 5])
     results = Dict{Int, Trial}()
 
     for w in windows
@@ -431,10 +430,10 @@ function benchmark_conec_for_window(model::ConEcModel, local_path::String, windo
         #warmup call
         conec_embeddings_for_file(model, local_path; window_size = w)
 
-        results[w] = @benchmark conec_embeddings_for_file($model, $local_path; window_size=$w)
+        results[w] = @benchmark conec_embeddings_for_file($model, $local_path; window_size = $w)
     end
 
-    display(_plot_benchmark(results, "window size"; mode=:conec))
+    display(_plot_benchmark(results, "window size"; mode = :conec))
     return results
 end
 
@@ -467,7 +466,7 @@ function benchmark_conec_for_local_corpus_size(model::ConEcModel, local_paths::V
         results[path] = @benchmark conec_embeddings_for_file($model, $path)
     end
 
-    display(_plot_benchmark(results, "Path"; mode=:conec))
+    display(_plot_benchmark(results, "Path"; mode = :conec))
     return results
 end
 
@@ -490,7 +489,7 @@ Automatically plots computation time versus embedding dimension.
 - Displays a plot of computation time versus embedding dimension.
 - Uses a warmup call for better benchmarking
 """
-function benchmark_conec_for_dim(models::Vector{ConEcModel}, local_path::String, dims::Vector{Int}=[50,100,200])
+function benchmark_conec_for_dim(models::Vector{ConEcModel}, local_path::String, dims::Vector{Int} = [50, 100, 200])
     results = Dict{Int, Trial}()
 
     for (model, dim) in zip(models, dims)
@@ -502,6 +501,6 @@ function benchmark_conec_for_dim(models::Vector{ConEcModel}, local_path::String,
         results[dim] = @benchmark conec_embeddings_for_file($model, $local_path)
     end
 
-    display(_plot_benchmark(results, "embedding dimension"; mode=:conec))
+    display(_plot_benchmark(results, "embedding dimension"; mode = :conec))
     return results
 end

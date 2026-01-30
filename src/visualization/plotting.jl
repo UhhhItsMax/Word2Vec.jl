@@ -29,18 +29,18 @@ Compute a t-SNE projection of word embeddings from `model` and return a 2D scatt
 - Labels are only drawn if `annotate=true`.
 """
 function plot_tsne(
-    model::Word2VecModel;
-    dims::Int=2,
-    words=nothing,
-    normalize::Bool=false,
-    seed::Int=42,
-    reduce_dims::Int=50,
-    max_iter::Int=1000,
-    perplexity::Int=30,
-    annotate::Bool=false,
-    markersize::Real=4,
-    kwargs...
-)
+        model::Word2VecModel;
+        dims::Int = 2,
+        words = nothing,
+        normalize::Bool = false,
+        seed::Int = 42,
+        reduce_dims::Int = 50,
+        max_iter::Int = 1000,
+        perplexity::Int = 30,
+        annotate::Bool = false,
+        markersize::Real = 4,
+        kwargs...
+    )
 
     if dims != 2
         throw(ArgumentError("plot_tsne currently supports dims=2 only (got dims=$dims)."))
@@ -48,16 +48,16 @@ function plot_tsne(
 
     Y, labels = tsne_embeddings(
         model;
-        dims=dims,
-        words=words,
-        normalize=normalize,
-        seed=seed,
-        reduce_dims=reduce_dims,
-        max_iter=max_iter,
-        perplexity=perplexity,
+        dims = dims,
+        words = words,
+        normalize = normalize,
+        seed = seed,
+        reduce_dims = reduce_dims,
+        max_iter = max_iter,
+        perplexity = perplexity,
     )
 
-    p = scatter(Y[:, 1], Y[:, 2]; legend=false, markersize=markersize, kwargs...)
+    p = scatter(Y[:, 1], Y[:, 2]; legend = false, markersize = markersize, kwargs...)
 
     if annotate
         for i in eachindex(labels)
