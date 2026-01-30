@@ -122,7 +122,7 @@ function analogy(model::Word2VecModel, a::AbstractString, b::AbstractString, c::
 
     @inbounds for (i, word) in enumerate(model.vocab)
         # exclude input words by setting value to -Inf
-        sims[i] = word in (a, b, c) ? -Inf : cosine_similarity(target, model.embeddings[:, i]; n1 = target_norm, n2 = model.vector_norms[i])
+        sims[i] = word in (a, b, c) ? -Inf : cosine_similarity(target, @view model.embeddings[:, i]; n1 = target_norm, n2 = model.vector_norms[i])
     end
 
     return model.vocab[sortperm(sims, rev = true)[1:topk]]
