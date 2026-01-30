@@ -27,8 +27,8 @@ function cosine_similarity(
     ) where {T <: Real}
     n1 = n1 === nothing ? norm(v1) : n1
     n2 = n2 === nothing ? norm(v2) : n2
-    n1 == 0.0 && throw(ArgumentError("v1 is a zero vector, cosine similarity undefined"))
-    n2 == 0.0 && throw(ArgumentError("v2 is a zero vector, cosine similarity undefined"))
+    isapprox(n1, 0.0) && throw(ArgumentError("v1 is a zero vector, cosine similarity undefined"))
+    isapprox(n2, 0.0) && throw(ArgumentError("v2 is a zero vector, cosine similarity undefined"))
     return dot(v1, v2) / (n1 * n2)
 end
 
