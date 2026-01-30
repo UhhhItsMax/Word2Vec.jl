@@ -11,7 +11,9 @@ detects the correct format when loading.
 
 ## Loading embeddings
 
-Use `load_word2vec(path::String)` to load embeddings from a text or binary Word2Vec file.
+Use [`load_word2vec(path::String)`](@ref) to load embeddings from a text or binary Word2Vec file.
+
+_Note:_ You can find a selection of pretrained models at [Project GloVe](https://nlp.stanford.edu/projects/glove/).
 
 ### Supported formats
 
@@ -41,7 +43,7 @@ model = load_word2vec(“word2vec.bin) # binary format
 
 ## Saving embeddings
 
-Use `save_word2vec(model::Word2VecModel, path::AbstractString; format=:text|:binary)` to save embeddings to a file in **text** or **binary** format.
+Use [`save_word2vec(model::Word2VecModel, path::AbstractString; format=:text|:binary)`](@ref) to save embeddings to a file in **text** or **binary** format.
 
 ### Supported formats
 

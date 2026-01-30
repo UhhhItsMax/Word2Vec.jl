@@ -1,7 +1,5 @@
 # Word2Vec.jl
 
-A lightweight Julia implementation of **Word2Vec (CBOW)** with utilities for evaluation, **ConEc** embeddings (global+local context), and quick **t-SNE visualization**.
-
 **Creator:** Maximilian Hans ([@UhhhItsMax](https://github.com/UhhhItsMax)) — hans.maximilian@icloud.com
 
 **Contributors:**
@@ -15,10 +13,26 @@ A lightweight Julia implementation of **Word2Vec (CBOW)** with utilities for eva
 [![Coverage](https://codecov.io/gh/UhhhItsMax/Word2Vec.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/UhhhItsMax/Word2Vec.jl)
 
 ---
+Lightweight Julia implementation of **Word2Vec CBOW** with **ConEc embeddings** (global+local context) and **t-SNE visualization**.
+
+---
+
+## Overview
+
+#### Word2Vec
+Word2Vec is a family of neural embedding models that map words to vectors text corpora. Words that appear in similar contexts obtain similar vector representations. These embeddings capture semantic and syntactic regularities and enable linear operations such as similarity search and analogical reasoning.
+
+#### CBOW
+CBOW (Continuous Bag-of-Words) is a Word2Vec training architecture. It learns word embeddings by predicting a target word from the average of its surrounding context words. The model ignores word order within the context window but is computationally efficient and performs well for frequent words. In CBOW, the input embedding matrix serves as the learned word representation space.
+
+#### ConEc
+ConEc (Contextualized Embeddings with Global Context) extends Word2Vec by incorporating global corpus-level information in addition to the local context window. For each word, a global context vector is derived from its co-occurrence statistics across the entire corpus and combined with the local CBOW context. A mixing parameter controls the contribution of global versus local information, improving robustness and representation quality, especially for rare or ambiguous words.
+
+Together, CBOW and ConEc provide a simple but expressive framework for learning word embeddings that capture both local syntactic structure and global semantic regularities.
 
 ## Installation
 
-This package is currently installed directly from GitHub:
+This package can be installed directly from GitHub:
 
 ```julia
 using Pkg
@@ -38,88 +52,144 @@ using Word2Vec
 
 ## Getting Started
 
-### 1) Loading and saving Word2Vec models
+This guide gives a minimal end-to-end overview of how to obtain a Word2Vec model, train one yourself, and use it for querying, evaluation, and ConEc embeddings.
 
-Word2Vec.jl supports loading and saving Word2Vec-compatible text and binary models.
+### How to get a Word2Vec model
 
-#### Loading a model
+There are two common ways to obtain a model:
+
+1. Load a pre-trained Word2Vec model
+2. Manually set embeddings
+
+---
+
+#### 1. Load a pre-trained Word2Vec model
+
+Word2Vec.jl supports Word2Vec-compatible **text** and **binary** formats.
+
 
 ```julia
 model = load_word2vec("vectors.txt")
 model = load_word2vec("vectors.bin")
 ```
-- Text format: word val1 val2 ...
-- Binary format: Gensim-style hybrid format (Float32 vectors)
-- Binary vectors are automatically converted to Float64
 
-#### Saving a model
+* Text format: `word val1 val2 ...`
+* Binary format: Gensim-style Word2Vec binary (Float32 vectors)
+* Binary vectors are automatically converted to `Float64`
+
+#### 2. Manually set embeddings
 
 ```julia
-save_word2vec(model, "model.txt"; format = :text)
-save_word2vec(model, "model.bin"; format = :binary)
+vocab = ["king", "queen", "man", "woman"]
+emb = randn(5, 4)
+model = Word2VecModel(vocab, emb)
 ```
 
-- Supported Formats:
-    - :text — human-readable, compatible with Gensim
-    - :binary — compact binary Word2Vec format
+To learn more, please refer to our guides on [Word2VecModel](./docs/src/model.md) as well as [Model I/O](./docs/src/io.md).
 
-### 2) Train a CBOW model on a text corpus
+---
 
-Assumption: your corpus is a `.txt` where **each line is treated as a sentence**.
+### Training a CBOW model from a corpus
+
+You can train a CBOW model directly from text. (e.g. the [Project Gutenberg](https://www.gutenberg.org/cache/epub/1661/pg1661.txt))
+
+Assumption: the corpus is a `.txt` file where **each line is treated as a sentence**.
 
 ```julia
 sentences = read_corpus_sentences("corpus.txt")
 
+# or equivalently
+sentences = [["the", "quick", "brown", "fox"],
+             ["fox", "jumps", "over", "the", "lazy", "dog"]]
+
 model = train_cbow(sentences)
 ```
 
-> If you want to ignore sentence boundaries (flat token stream), use:
-> `tokens = read_corpus_tokens("corpus.txt")`
-
-### 3) Query embeddings and model evaluation
+If sentence boundaries are not relevant and you want a flat token stream:
 
 ```julia
-# single word embedding vector
+tokens = read_corpus_tokens("corpus.txt")
+```
+
+preprocessing expectations:
+
+* One sentence per line
+* Tokens separated by whitespace
+* Lowercasing and cleanup of special characters performed beforehand
+
+More in-depth information can be found on our guide to [CBOW Training](./docs/src/cbow.md).
+
+---
+
+### Querying embeddings and basic evaluation
+
+Once a model is available, embeddings can be queried and evaluated directly.
+
+```julia
+# retrieve a single word vector
 v = get_embedding(model, "virtue")
 
-# similarity
+# cosine similarity
 similarity(model, "virtue", "reason")
 
-# analogies (classic word2vec demo)
+# analogy queries
 analogy(model, "king", "man", "woman")
 ```
 
+These operations rely on cosine similarity in the embedding space and use precomputed vector norms for efficiency.
+
+For more about benchmarking strategies, please see [Word2Vec Model Evaluation & Benchmarking](./docs/src/w2v_bench_ev.md) as well as [ConEc Embedding Benchmarking](./docs/src/conec_bench_ev.md).
+
 ---
 
-### 4) ConEc embeddings (global + local context)
+### ConEc embeddings (global + local context)
 
-ConEc creates embeddings from a mixture of a **global context matrix** and a **local document context**.
+ConEc combines **global corpus-level co-occurrence information** with **local document context**.
+
+First, build a ConEc model from an existing Word2Vec model and a global corpus:
 
 ```julia
-# Assume you already have a trained Word2Vec model `model`
-# Build ConEc using a global corpus
-cm = ConEcModel(model, "corpus.txt"; window_size=5, min_count=2, a=0.6)
-
-# Compute ConEc embeddings for a local document
-embs = conec_embeddings_for_file(cm, "local_doc.txt"; window_size=5, min_count=1)
-
-# embs is Dict{String,Vector{Float64}}
-embs["virtue"]
+cm = ConEcModel(
+    model,
+    "corpus.txt";
+    window_size = 5,
+    min_count = 2,
+    a = 0.6,
+)
 ```
 
----
-
-### 5) Tests
-
-Run tests (with coverage):
+Then compute contextualized embeddings for a local document:
 
 ```julia
-Pkg.test("Word2Vec")
+embs = conec_embeddings_for_file(
+    cm,
+    "local_doc.txt";
+    window_size = 5,
+    min_count = 1,
+)
 ```
+
+The result is a `Dict{String, Vector{Float64}}` mapping words to ConEc embeddings specific to the document.
+
+Please refer to [ConEc Embeddings](./docs/src/conec.md) for more information.
 
 ---
 
-### 6) More Information
+### Visualization
+
+Embeddings can be projected to two dimensions for inspection using t-SNE:
+
+```julia
+Word2Vec.plot_tsne(model; words = ["virtue", "reason", "justice"])
+```
+
+This is intended for qualitative analysis and debugging, not evaluation.
+
+Details for plotting can be found at our [Visualization](./docs/src/visualization.md) page.
+
+---
+
+## More Information
 
 For more information, visit our [Documentation](https://uhhhitsmax.github.io/Word2Vec.jl/stable/)
 
@@ -128,4 +198,4 @@ For more information, visit our [Documentation](https://uhhhitsmax.github.io/Wor
 
 ## License
 
-MIT (see `LICENSE`).
+MIT (see [`LICENSE`](./LICENSE)).
