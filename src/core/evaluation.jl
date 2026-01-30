@@ -7,6 +7,10 @@ Compute the **cosine similarity** between two vectors.
 - `v1::AbstractVector{<:Real}` — First vector.
 - `v2::AbstractVector{<:Real}` — Second vector.
 
+# Keyword Arguments
+- `n1::Union{<:Real, Nothing}` — precomputed norm of v1 or nothing.
+- `n2::Union{<:Real, Nothing}` — precomputed norm of v2 or nothing.
+
 # Returns
 - `Float64` — Cosine similarity score in the range `[-1.0, 1.0]`.
 
@@ -17,9 +21,12 @@ Compute the **cosine similarity** between two vectors.
 - Cosine similarity is defined as `dot(v1, v2) / (norm(v1) * norm(v2))`.
 - Works with any numeric vector type (`Float32`, `Float64`, `Int`, etc.), but output is always `Float64`.
 """
-function cosine_similarity(v1::AbstractVector{<:Real}, v2::AbstractVector{<:Real})
-    n1 = norm(v1)
-    n2 = norm(v2)
+function cosine_similarity(
+        v1::AbstractVector{T}, v2::AbstractVector{T};
+        n1::Union{T, Nothing} = nothing, n2::Union{T, Nothing} = nothing
+    ) where {T <: Real}
+    n1 = n1 === nothing ? norm(v1) : n1
+    n2 = n2 === nothing ? norm(v2) : n2
     n1 == 0.0 && throw(ArgumentError("v1 is a zero vector, cosine similarity undefined"))
     n2 == 0.0 && throw(ArgumentError("v2 is a zero vector, cosine similarity undefined"))
     return dot(v1, v2) / (n1 * n2)
@@ -55,16 +62,15 @@ function similarity(model::Word2VecModel, w1::AbstractString, w2::AbstractString
     haskey(model.word_to_index, w2) ||
         throw(KeyError("Word '$w2' not found in Word2Vec model"))
 
-    # Get indices
-    i1 = model.word_to_index[w1]
-    i2 = model.word_to_index[w2]
+    w1 = convert(String, w1)
+    w2 = convert(String, w2)
 
-    # Get vectors
-    v1 = model.embeddings[:, i1]
-    v2 = model.embeddings[:, i2]
+    v1 = get_embedding(model, w1)
+    v2 = get_embedding(model, w2)
+    n1 = get_embedding_norm(model, w1)
+    n2 = get_embedding_norm(model, w2)
 
-    # Return cosine similarity
-    return cosine_similarity(v1, v2)
+    return cosine_similarity(v1, v2; n1 = n1, n2 = n2)
 end
 
 
@@ -105,25 +111,18 @@ function analogy(model::Word2VecModel, a::AbstractString, b::AbstractString, c::
             throw(KeyError("Word '$w' not found in Word2Vec model"))
     end
 
-    ia = model.word_to_index[a]
-    ib = model.word_to_index[b]
-    ic = model.word_to_index[c]
-
-    va = model.embeddings[:, ia]
-    vb = model.embeddings[:, ib]
-    vc = model.embeddings[:, ic]
+    va = get_embedding(model, convert(String, a))
+    vb = get_embedding(model, convert(String, b))
+    vc = get_embedding(model, convert(String, c))
 
     target = vb - va + vc
+    target_norm = norm(target)
 
     sims = Vector{Float64}(undef, length(model.vocab))
 
-    @inbounds for i in eachindex(model.vocab)
-        sims[i] = cosine_similarity(target, model.embeddings[:, i])
-    end
-
-    # exclude inputs
-    for i in (ia, ib, ic)
-        sims[i] = -Inf
+    @inbounds for (i, word) in enumerate(model.vocab)
+        # exclude input words by setting value to -Inf
+        sims[i] = word in (a, b, c) ? -Inf : cosine_similarity(target, model.embeddings[:, i]; n1 = target_norm, n2 = model.vector_norms[i])
     end
 
     return model.vocab[sortperm(sims, rev = true)[1:topk]]
