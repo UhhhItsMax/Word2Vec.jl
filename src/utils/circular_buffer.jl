@@ -14,30 +14,30 @@ A fixed-capacity **FIFO buffer** for elements of type `T` that overwrites the ol
 - Ideal for sliding-window tasks such as co-occurrence counting in NLP.
 """
 mutable struct CircularBuffer{T}
-	data::Vector{T}
-	head::Int
-	len::Int
+    data::Vector{T}
+    head::Int
+    len::Int
 
-	"""
-		CircularBuffer{T}(capacity::Int)
+    """
+    	CircularBuffer{T}(capacity::Int)
 
-	Create a new `CircularBuffer` of element type `T` with a fixed `capacity`.
+    Create a new `CircularBuffer` of element type `T` with a fixed `capacity`.
 
-	# Arguments
-	- `capacity::Int` — Maximum number of elements the buffer can hold (must be ≥ 1).
+    # Arguments
+    - `capacity::Int` — Maximum number of elements the buffer can hold (must be ≥ 1).
 
-	# Throws
-	- `ArgumentError` if `capacity < 1`.
+    # Throws
+    - `ArgumentError` if `capacity < 1`.
 
-	# Notes
-	- The buffer starts empty (`len = 0`) with `head = 1`.
-	- Pushing elements beyond `capacity` overwrites the oldest entries in FIFO order.
-	"""
-	function CircularBuffer{T}(capacity::Int) where T
-		capacity > 0 || throw(ArgumentError("capacity must be positive"))
-		data = Vector{T}(undef, capacity)
-		return new{T}(data, 1, 0)
-	end
+    # Notes
+    - The buffer starts empty (`len = 0`) with `head = 1`.
+    - Pushing elements beyond `capacity` overwrites the oldest entries in FIFO order.
+    """
+    function CircularBuffer{T}(capacity::Int) where {T}
+        capacity > 0 || throw(ArgumentError("capacity must be positive"))
+        data = Vector{T}(undef, capacity)
+        return new{T}(data, 1, 0)
+    end
 end
 
 
@@ -127,16 +127,16 @@ Push `item` into the circular buffer `buf`.
 - Use `isfull(buf)` to check if the buffer is currently full.
 """
 function Base.push!(buf::CircularBuffer, item)
-	cap = capacity(buf)
-	if buf.len < cap
-		idx = (buf.head + buf.len - 1) % cap + 1
-		@inbounds buf.data[idx] = item
-		buf.len += 1
-	else
-		@inbounds buf.data[buf.head] = item
-		buf.head = (buf.head % cap) + 1
-	end
-	return buf
+    cap = capacity(buf)
+    if buf.len < cap
+        idx = (buf.head + buf.len - 1) % cap + 1
+        @inbounds buf.data[idx] = item
+        buf.len += 1
+    else
+        @inbounds buf.data[buf.head] = item
+        buf.head = (buf.head % cap) + 1
+    end
+    return buf
 end
 
 
@@ -160,10 +160,10 @@ Return the `i`-th item from the circular buffer `buf` in FIFO order.
 - `BoundsError` if `i < 1` or `i > length(buf)`.
 """
 function Base.getindex(buf::CircularBuffer, i::Int)
-	1 <= i <= buf.len || throw(BoundsError(buf, i))
-	cap = capacity(buf)
-	idx = (buf.head + i - 2) % cap + 1
-	return @inbounds buf.data[idx]
+    1 <= i <= buf.len || throw(BoundsError(buf, i))
+    cap = capacity(buf)
+    idx = (buf.head + i - 2) % cap + 1
+    return @inbounds buf.data[idx]
 end
 
 
@@ -185,10 +185,10 @@ Iterate over the elements of `buf` in FIFO order, starting from the oldest eleme
 - Compatible with Julia's iteration interface, allowing `for item in buf` loops.
 - Iterates exactly `length(buf)` elements, even if the buffer is full and wrapped around.
 """
-function Base.iterate(buf::CircularBuffer, state::Tuple{Int, Int, Int}=(buf.head, 0, capacity(buf)))
-	idx, count, cap = state
-	count >= buf.len && return nothing
-	item = @inbounds buf.data[idx]
-	next_idx = (idx % cap) + 1
-	return (item, (next_idx, count + 1, cap))
+function Base.iterate(buf::CircularBuffer, state::Tuple{Int, Int, Int} = (buf.head, 0, capacity(buf)))
+    idx, count, cap = state
+    count >= buf.len && return nothing
+    item = @inbounds buf.data[idx]
+    next_idx = (idx % cap) + 1
+    return (item, (next_idx, count + 1, cap))
 end

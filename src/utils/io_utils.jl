@@ -44,11 +44,12 @@ Clean a single line of text for tokenization.
 - Internal whitespace is collapsed to a single space.
 - Lines of dashes are treated according to `dash_rule`.
 """
-function clean_line(line::AbstractString;
-    lowercase::Bool=true,
-    strip_punct::Bool=true,
-    dash_rule::Bool=true
-)
+function clean_line(
+        line::AbstractString;
+        lowercase::Bool = true,
+        strip_punct::Bool = true,
+        dash_rule::Bool = true
+    )
     s = strip(String(line))
     isempty(s) && return nothing
 

@@ -14,7 +14,7 @@ In-place mean-centering of each **column** of `X`.
 - Modifies `X` in-place for memory efficiency.
 """
 function center_rows!(X::AbstractMatrix{<:Real})
-    μ = mean(X; dims=1)
+    μ = mean(X; dims = 1)
     X .-= μ
     return X
 end

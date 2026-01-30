@@ -40,7 +40,7 @@ Return a points-as-rows matrix of embeddings suitable for dimensionality reducti
 - Rows correspond to the selected words; `labels[i]` matches `X[i, :]`.
 - If no provided words exist in the vocabulary, returns an empty matrix and empty label vector.
 """
-function embedding_points(model::Word2VecModel; words=nothing, normalize::Bool=false)
+function embedding_points(model::Word2VecModel; words = nothing, normalize::Bool = false)
     if words === nothing
         labels = collect(model.vocab)
         X = permutedims(model.embeddings) # (V, dim)
@@ -94,17 +94,17 @@ Compute a t-SNE projection of word embeddings from a `Word2VecModel`.
 - Useful for visualization of embeddings in 2D or 3D.
 """
 function tsne_embeddings(
-    model::Word2VecModel;
-    dims::Int=2,
-    words=nothing,
-    normalize::Bool=false,
-    seed::Int=42,
-    reduce_dims::Int=50,
-    max_iter::Int=1000,
-    perplexity::Int=30,
-    kwargs...
-)
-    X, labels = embedding_points(model; words=words, normalize=normalize)
+        model::Word2VecModel;
+        dims::Int = 2,
+        words = nothing,
+        normalize::Bool = false,
+        seed::Int = 42,
+        reduce_dims::Int = 50,
+        max_iter::Int = 1000,
+        perplexity::Int = 30,
+        kwargs...
+    )
+    X, labels = embedding_points(model; words = words, normalize = normalize)
 
     if size(X, 1) == 0
         return Matrix{Float64}(undef, 0, dims), labels
@@ -114,9 +114,9 @@ function tsne_embeddings(
     seed!(seed)
     rd = min(reduce_dims, size(X, 2))
     Y = tsne(
-        X, dims, rd, max_iter, perplexity; 
-        distance=_tsne_dist,
-        progress=false, 
+        X, dims, rd, max_iter, perplexity;
+        distance = _tsne_dist,
+        progress = false,
         kwargs...
     )
     return Matrix{Float64}(Y), labels

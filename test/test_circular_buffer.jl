@@ -1,4 +1,4 @@
-using Test: @testset, @test, @test_throws 
+using Test: @testset, @test, @test_throws
 using Word2Vec: CircularBuffer, isempty, isfull
 
 @testset "CircularBuffer" begin

@@ -15,7 +15,7 @@ Return a **row-wise L2-normalized copy** of the input matrix `X`.
 """
 function l2normalize_rows!(X::AbstractMatrix{<:Real})
     @inbounds for row in eachrow(X)
-        s = sum(float.(row).^2)
+        s = sum(float.(row) .^ 2)
         nrm = sqrt(s)
         nrm > 0 && (row .= float.(row) ./ nrm)
     end
