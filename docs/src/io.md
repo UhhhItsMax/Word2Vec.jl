@@ -13,6 +13,8 @@ detects the correct format when loading.
 
 Use [`load_word2vec(path::String)`](@ref) to load embeddings from a text or binary Word2Vec file.
 
+_Note:_ You can find a selection of pretrained models at [Project GloVe](https://nlp.stanford.edu/projects/glove/).
+
 ### Supported formats
 
 We currently support text and binary formating for loading models. The formats are ditected automatically.

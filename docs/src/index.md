@@ -68,6 +68,8 @@ model = load_word2vec("vectors.bin")
 * Binary format: Gensim-style Word2Vec binary (Float32 vectors)
 * Binary vectors are automatically converted to `Float64`
 
+_Note:_ You can find a selection of pretrained models at [Project GloVe](https://nlp.stanford.edu/projects/glove/).
+
 #### 2. Manually set embeddings
 
 ```julia
