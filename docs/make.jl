@@ -1,7 +1,7 @@
 using Word2Vec
 using Documenter
 
-DocMeta.setdocmeta!(Word2Vec, :DocTestSetup, :(using Word2Vec); recursive=true)
+DocMeta.setdocmeta!(Word2Vec, :DocTestSetup, :(using Word2Vec); recursive = true)
 
 makedocs(
     modules = [Word2Vec],
@@ -21,7 +21,7 @@ makedocs(
         "ConEc Embeddings" => "conec.md",
         "Benchmarking for ConEc Embeddings" => "conec_bench_ev.md",
         "Visualization" => "visualization.md",
-        "API Reference" => "api.md"
+        "API Reference" => "api.md",
     ],
 )
 

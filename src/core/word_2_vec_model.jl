@@ -14,11 +14,11 @@ Unified in-memory representation for Word2Vec embeddings.
 - `vector_norms` is optional for computation but recommended for efficiency.
 - Provides the base structure for computing similarity, analogies, and ConEc embeddings.
 """
-struct Word2VecModel{T<:Real}
+struct Word2VecModel{T <: Real}
     vocab::Vector{String}
     embeddings::Matrix{T}
     vector_norms::Vector{T}
-    word_to_index::Dict{String,Int}
+    word_to_index::Dict{String, Int}
 end
 
 
@@ -41,7 +41,7 @@ Construct a `Word2VecModel` from a vocabulary and embedding matrix.
   - Any embedding vector has zero norm.
 - Builds `word_to_index` mapping from words to column indices in `embeddings`.
 """
-function Word2VecModel(vocab::Vector{String}, embeddings::Matrix{T}) where {T<:Real}
+function Word2VecModel(vocab::Vector{String}, embeddings::Matrix{T}) where {T <: Real}
     size(embeddings, 2) == length(vocab) || throw(ArgumentError("embeddings must have one column per vocab entry"))
 
     word_to_index = Dict(word => idx for (idx, word) in enumerate(vocab))
@@ -117,15 +117,15 @@ Construct a `Word2VecModel` from a dictionary mapping words to embedding vectors
 - Automatically converts vectors to type `T`.
 - Useful for constructing a Word2Vec model from in-memory data rather than files.
 """
-function from_dict_data(embeddings_map::Dict{String,Vector{T}}) where T<:AbstractFloat
-	words = collect(keys(embeddings_map))
-	dim = length(first(values(embeddings_map)))
+function from_dict_data(embeddings_map::Dict{String, Vector{T}}) where {T <: AbstractFloat}
+    words = collect(keys(embeddings_map))
+    dim = length(first(values(embeddings_map)))
 
-	M = Array{T}(undef, dim, length(words))
+    M = Array{T}(undef, dim, length(words))
 
-	for (i, w) in enumerate(words)
-		M[:, i] =  convert.(T, embeddings_map[w])
-	end
+    for (i, w) in enumerate(words)
+        M[:, i] = convert.(T, embeddings_map[w])
+    end
 
-	return Word2VecModel(words, M)
+    return Word2VecModel(words, M)
 end

@@ -108,7 +108,7 @@ function load_text_embeddings(path::String)::Tuple{Vector{String}, Matrix{Float6
 
             # Skip header lines and invalid rows
             if tryparse(Float64, word) === nothing &&
-               all(t -> tryparse(Float64, t) !== nothing, vec_tokens)
+                    all(t -> tryparse(Float64, t) !== nothing, vec_tokens)
 
                 vec = parse.(Float64, vec_tokens)
                 push!(vocab, word)
@@ -149,7 +149,7 @@ Loads Word2Vec embeddings from a Gensim binary-format file.
 - Throws an `ErrorException` if the header is malformed or cannot be parsed.
 """
 function load_binary_embeddings(path::String)::Tuple{Vector{String}, Matrix{Float64}}
-    open(path, "r") do io
+    return open(path, "r") do io
         # Read and validate header: "vocab_size dim\n"
         header = readline(io)
         tokens = split(header)
@@ -162,7 +162,7 @@ function load_binary_embeddings(path::String)::Tuple{Vector{String}, Matrix{Floa
         if vocab_size === nothing || dim === nothing
             error("Invalid binary Word2Vec header: tokens must be integers")
         end
-        
+
         vocab = Vector{String}(undef, vocab_size)
         embeddings = Matrix{Float64}(undef, dim, vocab_size)
         vec32 = Vector{Float32}(undef, dim)
@@ -177,7 +177,7 @@ function load_binary_embeddings(path::String)::Tuple{Vector{String}, Matrix{Floa
             word = String(word_bytes)
 
             # Read binary vector (Float32)
-            
+
             read!(io, vec32)
 
             # Store

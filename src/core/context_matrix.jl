@@ -13,12 +13,11 @@ Store a sparse word context matrix for co-occurrence-based embeddings.
 - Typically built from a corpus using a sliding window approach.
 - Supports any numeric type `T<:Real` for matrix entries.
 """
-struct SparseContextMatrix{T<:Real}
+struct SparseContextMatrix{T <: Real}
     mat::SparseMatrixCSC{T, Int}
     vocab::Vector{String}
     token_to_id::Dict{String, Int}
 end
-
 
 
 """
@@ -40,10 +39,10 @@ Construct a sparse word context matrix directly from a text corpus file.
 - Enables quick creation of a `SparseContextMatrix` from raw text without manually computing co-occurrences.
 """
 function SparseContextMatrix(
-    path::AbstractString;
-    window_size::Int = 5,
-    min_count::Int = 1,
-)
+        path::AbstractString;
+        window_size::Int = 5,
+        min_count::Int = 1,
+    )
     token_counts = get_occurence_counts(path)
     vocab, token_to_id = filter_vocabulary(token_counts, min_count)
     token_coocs = get_co_occurence_counts(path, token_to_id, window_size)
@@ -96,7 +95,7 @@ Load a previously saved `SparseContextMatrix` from disk.
 - Commonly used to reload global or local context matrices for ConEc or other co-occurrence-based models.
 """
 function load_sparse_context_matrix(path::AbstractString)
-    open(path, "r") do io
+    return open(path, "r") do io
         return deserialize(io)
     end
 end
@@ -121,10 +120,10 @@ Normalize raw co-occurrence counts for a corpus.
 - Typically used when building a `SparseContextMatrix` for ConEc or other co-occurrence-based embeddings.
 """
 function normalize_coocs(
-    token_coocs::Dict{Tuple{Int, Int}, Int},
-    token_counts::Dict{String, Int},
-    token_to_id::Dict{String, Int},
-)
+        token_coocs::Dict{Tuple{Int, Int}, Int},
+        token_counts::Dict{String, Int},
+        token_to_id::Dict{String, Int},
+    )
     vocab_size = length(token_to_id)
 
     inv_target_counts = Vector{Float64}(undef, vocab_size)
@@ -245,10 +244,10 @@ Count token co-occurrences in a text file using a symmetric sliding window.
 - `ArgumentError` if `window_size < 1`.
 """
 function get_co_occurence_counts(
-    path::AbstractString, 
-    token_to_id::Dict{String, Int}, 
-    window_size::Int
-)
+        path::AbstractString,
+        token_to_id::Dict{String, Int},
+        window_size::Int
+    )
     window_size ≥ 1 || throw(ArgumentError("window_size must be ≥ 1"))
 
     token_coocs = Dict{Tuple{Int, Int}, Int}()
@@ -309,6 +308,6 @@ function dict_to_sparse(coocs::Dict{Tuple{Int, Int}, T}, n::Int) where {T}
         vals[k] = v
     end
 
-    return sparse(rows, cols, vals, n, n) 
+    return sparse(rows, cols, vals, n, n)
 
 end

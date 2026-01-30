@@ -28,8 +28,7 @@ include("analysis/tsne.jl")
 include("analysis/plotting.jl")
 include("analysis/benchmarking.jl")
 
-export
-    Word2VecModel,
+export Word2VecModel,
     get_embedding,
     get_embedding_norm,
     from_dict_data,
@@ -52,11 +51,11 @@ export
     benchmark_cbow_for_dim,
     benchmark_cbow_for_epochs,
     benchmark_cbow_for_window,
-    SimilarityTest, 
+    SimilarityTest,
     AnalogyTest,
     benchmark_model_quality,
     benchmark_conec_for_window,
     benchmark_conec_for_local_corpus_size,
     benchmark_conec_for_dim
-    
+
 end

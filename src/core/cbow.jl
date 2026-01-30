@@ -36,32 +36,32 @@ with shape `(dim, |vocab|)`.
 - ArgumentError if corpus is not a token vector or a vector of tokenized sentences.
 """
 function train_cbow(
-    corpus;
-    dim::Int = 50,
-    window::Int = 2,
-    epochs::Int = 5,
-    lr::Float64 = 0.05,
-    min_count::Int = 1,
-    seed::Int = 42,
-    verbose::Bool = false,
-)
+        corpus;
+        dim::Int = 50,
+        window::Int = 2,
+        epochs::Int = 5,
+        lr::Float64 = 0.05,
+        min_count::Int = 1,
+        seed::Int = 42,
+        verbose::Bool = false,
+    )
     tokens = _flatten_corpus(corpus)
     isempty(tokens) && throw(ArgumentError("corpus is empty"))
 
-    vocab, word_to_idx, idx_tokens = _build_vocab_and_encode(tokens; min_count=min_count)
+    vocab, word_to_idx, idx_tokens = _build_vocab_and_encode(tokens; min_count = min_count)
     V = length(vocab)
     V == 0 && throw(ArgumentError("vocab is empty after min_count filtering"))
 
     rng = MersenneTwister(seed)
 
     # Params
-    W_in  = 0.01 .* randn(rng, dim, V)
+    W_in = 0.01 .* randn(rng, dim, V)
     W_out = 0.01 .* randn(rng, V, dim)
 
     # Buffers
-    h      = zeros(Float64, dim)
+    h = zeros(Float64, dim)
     scores = zeros(Float64, V)
-    probs  = zeros(Float64, V)
+    probs = zeros(Float64, V)
     grad_h = zeros(Float64, dim)
 
     n = length(idx_tokens)
@@ -93,7 +93,7 @@ function train_cbow(
             _softmax!(probs, scores)
 
             # cross entropy loss
-            total_loss += -log(probs[target] + 1e-12)
+            total_loss += -log(probs[target] + 1.0e-12)
             count += 1
 
             # dscores = probs - onehot(target)  (reuse probs as dscores)
@@ -226,7 +226,7 @@ function _build_vocab_and_encode(tokens::Vector{String}; min_count::Int)
     end
 
     kept = [(w, c) for (w, c) in counts if c >= min_count]
-    sort!(kept, by = x -> (-x[2], x[1])) 
+    sort!(kept, by = x -> (-x[2], x[1]))
 
     vocab = [wc[1] for wc in kept]
     word_to_idx = Dict{String, Int}(w => i for (i, w) in enumerate(vocab))
@@ -295,7 +295,7 @@ function _softmax!(out::Vector{Float64}, x::Vector{Float64})
         out[i] = v
         s += v
     end
-    invs = 1.0 / (s + 1e-12)
+    invs = 1.0 / (s + 1.0e-12)
     @inbounds for i in eachindex(out)
         out[i] *= invs
     end
