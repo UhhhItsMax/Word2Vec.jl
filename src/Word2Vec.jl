@@ -10,20 +10,23 @@ using Statistics: mean
 using TSne: tsne
 using Distances: evaluate, SqEuclidean
 
-include("models/Word2VecModel.jl")
-include("loaders/load_word2vec.jl")
-include("savers/save_word2vec.jl")
-include("training/cbow.jl")
-include("conec/context_matrix.jl")
-include("conec/conec.jl")
+include("core/model.jl")
+include("core/cbow.jl")
+include("core/context_matrix.jl")
+include("core/conec.jl")
+include("core/evaluation.jl")
+
+include("io/load_word2vec.jl")
+include("io/save_word2vec.jl")
+
+include("analysis/tsne.jl")
+include("analysis/plotting.jl")
+include("analysis/benchmarking.jl")
+
 include("utils/circular_buffer.jl")
 include("utils/math_utils.jl")
 include("utils/normalize.jl")
 include("utils/io_utils.jl")
-include("visualization/tsne.jl")
-include("visualization/plotting.jl")
-include("evaluation/evaluation.jl")
-include("benchmarking/benchmarking.jl")
 
 export Word2VecModel,
     get_embedding,
