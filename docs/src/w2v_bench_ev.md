@@ -63,8 +63,8 @@ Note that for this example to work you need an trained model wich has embeddings
 ```julia
 # Define similarity tests
 sim_tests = [
-    SimilarityTest("king", "queen"; higher_than = ["man", "dog"]),
-    SimilarityTest("cat", "dog"; higher_than = ["car", "tree"])
+    SimilarityTest("king", "queen", ["man", "dog"]),
+    SimilarityTest("cat", "dog", ["car", "tree"])
 ]
 
 # Define analogy tests
