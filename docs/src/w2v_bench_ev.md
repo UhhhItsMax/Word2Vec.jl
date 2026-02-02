@@ -58,6 +58,8 @@ You can use the following function and structs to perform quality benchmarks on 
 
 #### Example
 
+Note that for this example to work you need an trained model wich has embeddings for the given words.
+
 ```julia
 # Define similarity tests
 sim_tests = [
