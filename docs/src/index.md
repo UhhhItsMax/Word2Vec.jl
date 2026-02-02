@@ -92,10 +92,29 @@ Assumption: the corpus is a `.txt` file where **each line is treated as a senten
 sentences = read_corpus_sentences("corpus.txt")
 
 # or equivalently
-sentences = [["the", "quick", "brown", "fox"],
-             ["fox", "jumps", "over", "the", "lazy", "dog"],
-             ["king", "queen", "man", "woman"],
-             ["virtue", "reason", "justice"]]
+sentences = [
+    ["the", "quick", "brown", "fox"],
+    ["fox", "jumps", "over", "the", "lazy", "dog"],
+
+    ["cat", "and", "dog", "are", "animals"],
+    ["the", "dog", "chases", "the", "cat"],
+    ["a", "cat", "is", "not", "a", "dog"],
+
+    ["car", "and", "tree", "are", "objects"],
+    ["the", "car", "is", "parked", "near", "the", "tree"],
+
+    ["king", "and", "queen", "rule", "the", "kingdom"],
+    ["the", "king", "is", "a", "man"],
+    ["the", "queen", "is", "a", "woman"],
+    ["man", "and", "woman", "are", "people"],
+
+    ["paris", "is", "the", "capital", "of", "france"],
+    ["berlin", "is", "the", "capital", "of", "germany"],
+    ["Deutschland", "is", "germany"],
+    ["france", "and", "germany", "are", "countries"],
+    ["virtue", "and", "justice", "require", "reason"],
+    ["reason", "guides", "virtue"]
+]
 
 model = train_cbow(sentences)
 ```
