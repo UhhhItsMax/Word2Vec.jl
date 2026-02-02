@@ -102,7 +102,9 @@ sentences = read_corpus_sentences("corpus.txt")
 
 # or equivalently
 sentences = [["the", "quick", "brown", "fox"],
-             ["fox", "jumps", "over", "the", "lazy", "dog"]]
+             ["fox", "jumps", "over", "the", "lazy", "dog"],
+             ["king", "queen", "man", "woman"],
+             ["virtue", "reason"]]
 
 model = train_cbow(sentences)
 ```
