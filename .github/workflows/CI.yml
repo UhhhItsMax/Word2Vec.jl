@@ -41,7 +41,7 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
 
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
 
       - uses: julia-actions/julia-buildpkg@v1
 
@@ -82,7 +82,7 @@ jobs:
         with:
           version: "1.11"
 
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
 
       - name: Instantiate docs environment
         shell: bash
